@@ -1,0 +1,1376 @@
+{
+  "schemaVersion": "0.1.0",
+  "source": {
+    "name": "Enterprise Integration Patterns messaging catalog",
+    "url": "https://www.enterpriseintegrationpatterns.com/patterns/messaging/toc.html",
+    "authors": [
+      "Gregor Hohpe",
+      "Bobby Woolf"
+    ],
+    "note": "Pattern names and categories are based on the public catalog table of contents. Summaries are original."
+  },
+  "patterns": [
+    {
+      "slug": "file-transfer",
+      "name": "File Transfer",
+      "category": "Integration Styles",
+      "intent": "Exchange data by writing and reading files through a shared transfer location.",
+      "whenToUse": [
+        "Batch delivery is acceptable.",
+        "Participants cannot share a live API or message broker.",
+        "Operational teams already manage file drops, checksums, and retention."
+      ],
+      "avoidWhen": [
+        "Low latency or fine-grained feedback is required.",
+        "Partial files and duplicate processing cannot be controlled.",
+        "Schema evolution is unmanaged."
+      ],
+      "related": [
+        "message",
+        "channel-adapter"
+      ]
+    },
+    {
+      "slug": "shared-database",
+      "name": "Shared Database",
+      "category": "Integration Styles",
+      "intent": "Let multiple applications integrate through common database tables or views.",
+      "whenToUse": [
+        "Applications need consistent shared state and can tolerate tight schema coupling.",
+        "A database is already the operational coordination point.",
+        "Read-only reporting integration is the main need."
+      ],
+      "avoidWhen": [
+        "Independent deployment and ownership matter.",
+        "Teams cannot coordinate schema changes safely.",
+        "Business rules would be bypassed by direct table access."
+      ],
+      "related": [
+        "messaging",
+        "canonical-data-model"
+      ]
+    },
+    {
+      "slug": "remote-procedure-invocation",
+      "name": "Remote Procedure Invocation",
+      "category": "Integration Styles",
+      "intent": "Expose application behavior through synchronous remote calls.",
+      "whenToUse": [
+        "The caller needs an immediate response.",
+        "Latency and availability are acceptable for request-time coupling.",
+        "The remote API represents a stable capability boundary."
+      ],
+      "avoidWhen": [
+        "Call chains can amplify latency or outages.",
+        "Work should continue asynchronously.",
+        "Retries are not idempotent or observable."
+      ],
+      "related": [
+        "request-reply",
+        "service-activator"
+      ]
+    },
+    {
+      "slug": "messaging",
+      "name": "Messaging",
+      "category": "Integration Styles",
+      "intent": "Integrate applications by sending messages through channels with temporal decoupling.",
+      "whenToUse": [
+        "Participants should not require each other to be available at the same instant.",
+        "Workflows need buffering, routing, fanout, or retry.",
+        "Loose coupling matters more than immediate response."
+      ],
+      "avoidWhen": [
+        "The interaction is a simple local call.",
+        "Operational ownership for queues and consumers is missing.",
+        "Message contracts and idempotency cannot be governed."
+      ],
+      "related": [
+        "message-channel",
+        "message-endpoint",
+        "guaranteed-delivery"
+      ]
+    },
+    {
+      "slug": "message-channel",
+      "name": "Message Channel",
+      "category": "Messaging Systems",
+      "intent": "Provide a logical path that carries messages from senders to receivers.",
+      "whenToUse": [
+        "Applications need a named communication path.",
+        "The channel can express ownership, delivery mode, and contract expectations.",
+        "Consumers should subscribe to a stable address rather than concrete senders."
+      ],
+      "avoidWhen": [
+        "Channel proliferation hides ownership.",
+        "Naming does not encode message semantics.",
+        "Security and retention policy are undefined."
+      ],
+      "related": [
+        "point-to-point-channel",
+        "publish-subscribe-channel",
+        "datatype-channel"
+      ]
+    },
+    {
+      "slug": "message",
+      "name": "Message",
+      "category": "Messaging Systems",
+      "intent": "Package data and metadata as a unit exchanged through a channel.",
+      "whenToUse": [
+        "A sender needs to communicate facts, commands, documents, or events.",
+        "Headers and payload should travel together.",
+        "The message can be versioned and validated independently."
+      ],
+      "avoidWhen": [
+        "Payloads are too large for the broker.",
+        "Metadata needed for operations is missing.",
+        "Message meaning depends on hidden sender state."
+      ],
+      "related": [
+        "command-message",
+        "document-message",
+        "event-message"
+      ]
+    },
+    {
+      "slug": "pipes-and-filters",
+      "name": "Pipes and Filters",
+      "category": "Messaging Systems",
+      "intent": "Process data through independent steps connected by channels.",
+      "whenToUse": [
+        "A flow can be decomposed into reusable transformations or decisions.",
+        "Steps should scale, test, and deploy independently.",
+        "Intermediate results are useful for troubleshooting."
+      ],
+      "avoidWhen": [
+        "The flow requires tight shared transactions.",
+        "Every step depends on hidden mutable context.",
+        "Operational overhead outweighs decomposition benefits."
+      ],
+      "related": [
+        "message-router",
+        "message-translator",
+        "composed-message-processor"
+      ]
+    },
+    {
+      "slug": "message-router",
+      "name": "Message Router",
+      "category": "Messaging Systems",
+      "intent": "Route a message to one or more destinations based on routing logic.",
+      "whenToUse": [
+        "Senders should not know all possible recipients.",
+        "Routing criteria may change independently of producers.",
+        "Central routing improves control and observability."
+      ],
+      "avoidWhen": [
+        "Routing rules become opaque business logic.",
+        "A direct subscription model is enough.",
+        "The router is a bottleneck or single point of failure."
+      ],
+      "related": [
+        "content-based-router",
+        "recipient-list",
+        "dynamic-router"
+      ]
+    },
+    {
+      "slug": "message-translator",
+      "name": "Message Translator",
+      "category": "Messaging Systems",
+      "intent": "Convert a message from one schema or representation to another.",
+      "whenToUse": [
+        "Systems cannot share the same data contract.",
+        "Transformation is a boundary concern.",
+        "You need to isolate canonical and external formats."
+      ],
+      "avoidWhen": [
+        "Translation silently changes business meaning.",
+        "Mapping rules are scattered across consumers.",
+        "Schema ownership is unclear."
+      ],
+      "related": [
+        "normalizer",
+        "canonical-data-model",
+        "envelope-wrapper"
+      ]
+    },
+    {
+      "slug": "message-endpoint",
+      "name": "Message Endpoint",
+      "category": "Messaging Systems",
+      "intent": "Connect application code to messaging infrastructure for sending or receiving.",
+      "whenToUse": [
+        "Business logic needs a boundary to messaging concerns.",
+        "Endpoint code can handle serialization, acknowledgements, and errors.",
+        "Testing requires separation from broker details."
+      ],
+      "avoidWhen": [
+        "Broker APIs leak throughout domain code.",
+        "Endpoint lifecycle is unmanaged.",
+        "Error handling is inconsistent."
+      ],
+      "related": [
+        "messaging-gateway",
+        "polling-consumer",
+        "event-driven-consumer"
+      ]
+    },
+    {
+      "slug": "point-to-point-channel",
+      "name": "Point-to-Point Channel",
+      "category": "Messaging Channels",
+      "intent": "Deliver each message to one eligible receiver.",
+      "whenToUse": [
+        "Work items should be load-balanced across consumers.",
+        "Only one consumer should perform the action.",
+        "Horizontal scaling is needed without duplicate processing."
+      ],
+      "avoidWhen": [
+        "Every subscriber must see every message.",
+        "Consumers cannot process idempotently.",
+        "Ordering expectations conflict with parallelism."
+      ],
+      "related": [
+        "competing-consumers",
+        "publish-subscribe-channel"
+      ]
+    },
+    {
+      "slug": "publish-subscribe-channel",
+      "name": "Publish-Subscribe Channel",
+      "category": "Messaging Channels",
+      "intent": "Broadcast messages to multiple interested subscribers.",
+      "whenToUse": [
+        "Many consumers independently react to the same event.",
+        "Producers should not know subscribers.",
+        "New subscribers should be added without changing producers."
+      ],
+      "avoidWhen": [
+        "Only one consumer should act.",
+        "Subscribers require strict global ordering.",
+        "Unbounded fanout could overload downstream systems."
+      ],
+      "related": [
+        "event-message",
+        "durable-subscriber",
+        "observer"
+      ]
+    },
+    {
+      "slug": "datatype-channel",
+      "name": "Datatype Channel",
+      "category": "Messaging Channels",
+      "intent": "Separate channels by message type so receivers know what kind of payload to expect.",
+      "whenToUse": [
+        "Type-specific consumers simplify validation and routing.",
+        "Operational ownership differs by message type.",
+        "Schema evolution needs channel-level clarity."
+      ],
+      "avoidWhen": [
+        "Too many narrow channels create management overhead.",
+        "Consumers still need runtime type guessing.",
+        "Message versioning is not handled."
+      ],
+      "related": [
+        "message",
+        "message-filter",
+        "format-indicator"
+      ]
+    },
+    {
+      "slug": "invalid-message-channel",
+      "name": "Invalid Message Channel",
+      "category": "Messaging Channels",
+      "intent": "Route messages that fail validation to a dedicated channel for inspection or repair.",
+      "whenToUse": [
+        "Malformed or semantically invalid messages must not block normal flow.",
+        "Operations needs visibility into contract violations.",
+        "Some invalid messages may be corrected and replayed."
+      ],
+      "avoidWhen": [
+        "Invalid data should be rejected synchronously at the producer.",
+        "The channel becomes an unmonitored dumping ground.",
+        "Sensitive payloads would be exposed without controls."
+      ],
+      "related": [
+        "dead-letter-channel",
+        "message-filter",
+        "test-message"
+      ]
+    },
+    {
+      "slug": "dead-letter-channel",
+      "name": "Dead Letter Channel",
+      "category": "Messaging Channels",
+      "intent": "Preserve messages that cannot be delivered or processed after policy is exhausted.",
+      "whenToUse": [
+        "Failed delivery must be observable and recoverable.",
+        "Retry policy has clear terminal conditions.",
+        "Operations needs a place to inspect and replay poison messages."
+      ],
+      "avoidWhen": [
+        "Failures are silently ignored after dead-lettering.",
+        "Replay would repeat unsafe side effects.",
+        "Retention and access policy are undefined."
+      ],
+      "related": [
+        "guaranteed-delivery",
+        "invalid-message-channel",
+        "idempotent-receiver"
+      ]
+    },
+    {
+      "slug": "guaranteed-delivery",
+      "name": "Guaranteed Delivery",
+      "category": "Messaging Channels",
+      "intent": "Persist messages so they can survive process or broker interruptions until delivery policy completes.",
+      "whenToUse": [
+        "Message loss is unacceptable.",
+        "Durable storage and acknowledgements are available.",
+        "Receivers are idempotent or side effects are controlled."
+      ],
+      "avoidWhen": [
+        "Low latency is more important than durability.",
+        "Duplicate delivery cannot be tolerated or mitigated.",
+        "Operational storage limits are unknown."
+      ],
+      "related": [
+        "dead-letter-channel",
+        "message-store",
+        "idempotent-receiver"
+      ]
+    },
+    {
+      "slug": "channel-adapter",
+      "name": "Channel Adapter",
+      "category": "Messaging Channels",
+      "intent": "Connect a non-messaging application or resource to a messaging channel.",
+      "whenToUse": [
+        "A file, database, API, or device must participate in message flow.",
+        "The adapter can isolate polling, serialization, and error policy.",
+        "The application should remain unaware of broker details."
+      ],
+      "avoidWhen": [
+        "The adapter owns too much business logic.",
+        "Backpressure and retry behavior are not designed.",
+        "A native integration already exists."
+      ],
+      "related": [
+        "messaging-gateway",
+        "adapter",
+        "message-endpoint"
+      ]
+    },
+    {
+      "slug": "messaging-bridge",
+      "name": "Messaging Bridge",
+      "category": "Messaging Channels",
+      "intent": "Move messages between separate messaging systems while preserving useful semantics.",
+      "whenToUse": [
+        "Two brokers or protocols must interoperate.",
+        "Migration requires traffic to flow across old and new systems.",
+        "Teams need a controlled boundary between messaging domains."
+      ],
+      "avoidWhen": [
+        "Delivery guarantees differ and cannot be reconciled.",
+        "The bridge hides loss of ordering, headers, or identity.",
+        "A shared broker would be simpler."
+      ],
+      "related": [
+        "message-translator",
+        "message-bus",
+        "channel-adapter"
+      ]
+    },
+    {
+      "slug": "message-bus",
+      "name": "Message Bus",
+      "category": "Messaging Channels",
+      "intent": "Provide a shared messaging backbone with common contracts and integration conventions.",
+      "whenToUse": [
+        "Many applications need decoupled integration through common infrastructure.",
+        "Governance can define contracts, schemas, security, and observability.",
+        "New participants should join through standard adapters or endpoints."
+      ],
+      "avoidWhen": [
+        "Central infrastructure becomes a bottleneck for team autonomy.",
+        "Contracts are not governed.",
+        "A bus is used as a substitute for clear domain ownership."
+      ],
+      "related": [
+        "canonical-data-model",
+        "control-bus",
+        "messaging-bridge"
+      ]
+    },
+    {
+      "slug": "command-message",
+      "name": "Command Message",
+      "category": "Message Construction",
+      "intent": "Represent an instruction to perform work as a message.",
+      "whenToUse": [
+        "A receiver is expected to take an action.",
+        "The command needs correlation, retry, audit, or scheduling.",
+        "The action can be made idempotent or guarded."
+      ],
+      "avoidWhen": [
+        "The sender is only announcing that something happened.",
+        "The command name is vague or CRUD-shaped without business intent.",
+        "The receiver cannot safely handle retries."
+      ],
+      "related": [
+        "command",
+        "request-reply",
+        "service-activator"
+      ]
+    },
+    {
+      "slug": "document-message",
+      "name": "Document Message",
+      "category": "Message Construction",
+      "intent": "Transfer a document-like data structure for another system to consume.",
+      "whenToUse": [
+        "The receiver decides what to do with the data.",
+        "The payload is a business document, snapshot, or data transfer.",
+        "The message should not imply a specific action."
+      ],
+      "avoidWhen": [
+        "The producer needs the receiver to execute a command.",
+        "Payload size exceeds broker or retention limits.",
+        "Document versioning is unmanaged."
+      ],
+      "related": [
+        "event-message",
+        "claim-check",
+        "message-translator"
+      ]
+    },
+    {
+      "slug": "event-message",
+      "name": "Event Message",
+      "category": "Message Construction",
+      "intent": "Announce that a meaningful fact or state transition occurred.",
+      "whenToUse": [
+        "Subscribers decide independently how to react.",
+        "The producer should not know downstream workflows.",
+        "Events can be named in business language."
+      ],
+      "avoidWhen": [
+        "The sender needs to tell a specific receiver what to do.",
+        "Events expose internal implementation noise.",
+        "Consumers need data not included or reachable from the event."
+      ],
+      "related": [
+        "publish-subscribe-channel",
+        "message-history",
+        "observer"
+      ]
+    },
+    {
+      "slug": "request-reply",
+      "name": "Request-Reply",
+      "category": "Message Construction",
+      "intent": "Send a request message and receive a correlated response message.",
+      "whenToUse": [
+        "A caller needs a response but messaging infrastructure is still desired.",
+        "Temporal decoupling, retries, or broker routing matter.",
+        "Correlation and timeout behavior can be explicit."
+      ],
+      "avoidWhen": [
+        "A synchronous API would be simpler and reliable enough.",
+        "Timeouts and duplicate replies cannot be handled.",
+        "The flow creates hidden distributed transactions."
+      ],
+      "related": [
+        "return-address",
+        "correlation-identifier",
+        "remote-procedure-invocation"
+      ]
+    },
+    {
+      "slug": "return-address",
+      "name": "Return Address",
+      "category": "Message Construction",
+      "intent": "Tell a receiver where to send a reply.",
+      "whenToUse": [
+        "Reply destinations vary by requestor or conversation.",
+        "The receiver should not hard-code response channels.",
+        "Temporary or tenant-specific response channels are used."
+      ],
+      "avoidWhen": [
+        "Replies always go to a fixed channel.",
+        "The return address is not authenticated or authorized.",
+        "Dynamic destinations create routing complexity without benefit."
+      ],
+      "related": [
+        "request-reply",
+        "correlation-identifier",
+        "smart-proxy"
+      ]
+    },
+    {
+      "slug": "correlation-identifier",
+      "name": "Correlation Identifier",
+      "category": "Message Construction",
+      "intent": "Attach an identifier that connects related messages in a conversation.",
+      "whenToUse": [
+        "Requests, replies, retries, or workflow steps must be tied together.",
+        "Logs and traces need a shared business or technical key.",
+        "Multiple in-flight conversations can overlap."
+      ],
+      "avoidWhen": [
+        "Identifiers are regenerated at every hop.",
+        "Correlation leaks sensitive user data.",
+        "The ID is confused with idempotency or causation."
+      ],
+      "related": [
+        "request-reply",
+        "message-history",
+        "smart-proxy"
+      ]
+    },
+    {
+      "slug": "message-sequence",
+      "name": "Message Sequence",
+      "category": "Message Construction",
+      "intent": "Split related data across multiple ordered messages with enough metadata to reconstruct context.",
+      "whenToUse": [
+        "Payloads are too large or naturally chunked.",
+        "Receivers need sequence number, total count, or completion markers.",
+        "Streaming or partial processing is useful."
+      ],
+      "avoidWhen": [
+        "A claim check or external object store is simpler.",
+        "Ordering cannot be preserved or repaired.",
+        "Receivers cannot handle missing chunks."
+      ],
+      "related": [
+        "splitter",
+        "aggregator",
+        "resequencer"
+      ]
+    },
+    {
+      "slug": "message-expiration",
+      "name": "Message Expiration",
+      "category": "Message Construction",
+      "intent": "Mark messages with a time after which processing is no longer useful.",
+      "whenToUse": [
+        "Stale work could cause wrong or wasteful side effects.",
+        "Business deadlines or SLAs define useful processing windows.",
+        "Queues may build up during outages."
+      ],
+      "avoidWhen": [
+        "Late messages must still be audited or compensated.",
+        "Expiration policy conflicts with guaranteed delivery expectations.",
+        "Clock skew and timezone handling are unmanaged."
+      ],
+      "related": [
+        "dead-letter-channel",
+        "message-filter",
+        "control-bus"
+      ]
+    },
+    {
+      "slug": "format-indicator",
+      "name": "Format Indicator",
+      "category": "Message Construction",
+      "intent": "Include metadata that identifies the payload format or version.",
+      "whenToUse": [
+        "Multiple schema versions or encodings may coexist.",
+        "Consumers need safe dispatch to the right parser.",
+        "Schema migration needs explicit compatibility signals."
+      ],
+      "avoidWhen": [
+        "The channel already guarantees a single schema.",
+        "Consumers ignore the indicator and guess anyway.",
+        "Version policy is not documented."
+      ],
+      "related": [
+        "datatype-channel",
+        "message-translator",
+        "normalizer"
+      ]
+    },
+    {
+      "slug": "content-based-router",
+      "name": "Content-Based Router",
+      "category": "Message Routing",
+      "intent": "Choose a destination by inspecting message content.",
+      "whenToUse": [
+        "Routing follows business data or headers.",
+        "Producers should not know routing destinations.",
+        "Routing rules can be tested and observed centrally."
+      ],
+      "avoidWhen": [
+        "Rules duplicate domain decisions that belong upstream.",
+        "Payload inspection is expensive or privacy-sensitive.",
+        "Routes change so often that operations cannot reason about flow."
+      ],
+      "related": [
+        "message-router",
+        "message-filter",
+        "recipient-list"
+      ]
+    },
+    {
+      "slug": "message-filter",
+      "name": "Message Filter",
+      "category": "Message Routing",
+      "intent": "Remove messages that do not meet criteria before they reach downstream processing.",
+      "whenToUse": [
+        "Consumers should only receive relevant messages.",
+        "Filtering can reduce load and noise.",
+        "Discarded messages are safe to drop or redirect."
+      ],
+      "avoidWhen": [
+        "Dropped messages require audit or compensation.",
+        "Filter criteria are hidden business rules.",
+        "Filtering masks producer contract problems."
+      ],
+      "related": [
+        "invalid-message-channel",
+        "selective-consumer",
+        "content-based-router"
+      ]
+    },
+    {
+      "slug": "dynamic-router",
+      "name": "Dynamic Router",
+      "category": "Message Routing",
+      "intent": "Route messages using destinations that can change at runtime.",
+      "whenToUse": [
+        "Receivers join, leave, or advertise capabilities dynamically.",
+        "Static routing tables are too brittle.",
+        "Runtime discovery is governed and observable."
+      ],
+      "avoidWhen": [
+        "Dynamic registration can be spoofed or stale.",
+        "Operators cannot predict where messages flow.",
+        "Static routing would be simpler and safer."
+      ],
+      "related": [
+        "recipient-list",
+        "routing-slip",
+        "control-bus"
+      ]
+    },
+    {
+      "slug": "recipient-list",
+      "name": "Recipient List",
+      "category": "Message Routing",
+      "intent": "Route one message to a computed list of recipients.",
+      "whenToUse": [
+        "Fanout targets depend on message content or configuration.",
+        "Recipients are selected per message.",
+        "The sender should not manage every destination."
+      ],
+      "avoidWhen": [
+        "All subscribers should receive every message.",
+        "Recipient computation is expensive or opaque.",
+        "Partial delivery semantics are undefined."
+      ],
+      "related": [
+        "publish-subscribe-channel",
+        "scatter-gather",
+        "content-based-router"
+      ]
+    },
+    {
+      "slug": "splitter",
+      "name": "Splitter",
+      "category": "Message Routing",
+      "intent": "Break one compound message into multiple messages for independent processing.",
+      "whenToUse": [
+        "A payload contains independent items.",
+        "Items can be processed, retried, or routed separately.",
+        "Downstream components expect smaller units of work."
+      ],
+      "avoidWhen": [
+        "Items require one shared transaction.",
+        "Reassembly semantics are unclear.",
+        "Splitting loses context needed downstream."
+      ],
+      "related": [
+        "aggregator",
+        "message-sequence",
+        "composed-message-processor"
+      ]
+    },
+    {
+      "slug": "aggregator",
+      "name": "Aggregator",
+      "category": "Message Routing",
+      "intent": "Combine related messages into one result once a completion condition is met.",
+      "whenToUse": [
+        "Split or parallel work must be gathered into a coherent result.",
+        "Correlation, completeness, and timeout rules are explicit.",
+        "Partial results can be handled deliberately."
+      ],
+      "avoidWhen": [
+        "The aggregator cannot know when a group is complete.",
+        "State storage and cleanup are not designed.",
+        "Late or duplicate messages would corrupt results."
+      ],
+      "related": [
+        "splitter",
+        "correlation-identifier",
+        "resequencer"
+      ]
+    },
+    {
+      "slug": "resequencer",
+      "name": "Resequencer",
+      "category": "Message Routing",
+      "intent": "Reorder related messages into the expected sequence before forwarding.",
+      "whenToUse": [
+        "Parallel or distributed processing can deliver messages out of order.",
+        "Downstream consumers require ordered input.",
+        "Sequence metadata and buffering policy are available."
+      ],
+      "avoidWhen": [
+        "Ordering is unnecessary or can be handled by the consumer.",
+        "Missing messages would block indefinitely.",
+        "Buffering introduces unacceptable latency."
+      ],
+      "related": [
+        "message-sequence",
+        "aggregator",
+        "message-store"
+      ]
+    },
+    {
+      "slug": "composed-message-processor",
+      "name": "Composed Message Processor",
+      "category": "Message Routing",
+      "intent": "Split, route, process, and reassemble a compound message while preserving the overall flow.",
+      "whenToUse": [
+        "Different parts of a message require different processing paths.",
+        "A final combined result is needed.",
+        "The processing topology can be made observable."
+      ],
+      "avoidWhen": [
+        "The composition hides too much stateful orchestration.",
+        "A simple service can process the whole payload.",
+        "Failure policy for partial work is undefined."
+      ],
+      "related": [
+        "splitter",
+        "aggregator",
+        "scatter-gather"
+      ]
+    },
+    {
+      "slug": "scatter-gather",
+      "name": "Scatter-Gather",
+      "category": "Message Routing",
+      "intent": "Send a request to multiple recipients and aggregate their replies.",
+      "whenToUse": [
+        "Several providers can answer or enrich the same request.",
+        "The caller benefits from parallelism or best-result selection.",
+        "Timeout and partial-response rules are explicit."
+      ],
+      "avoidWhen": [
+        "Every recipient must succeed transactionally.",
+        "Response fan-in would overload the aggregator.",
+        "Provider behavior cannot be made idempotent."
+      ],
+      "related": [
+        "recipient-list",
+        "aggregator",
+        "request-reply"
+      ]
+    },
+    {
+      "slug": "routing-slip",
+      "name": "Routing Slip",
+      "category": "Message Routing",
+      "intent": "Attach the remaining processing steps to the message so it can move through a variable route.",
+      "whenToUse": [
+        "The processing path is decided before or during execution.",
+        "Each step can read and advance the route instructions.",
+        "The flow should avoid a central orchestrator for every hop."
+      ],
+      "avoidWhen": [
+        "Routes need central policy checks at every step.",
+        "Messages can be tampered with or route instructions cannot be trusted.",
+        "A workflow engine would make state and compensation clearer."
+      ],
+      "related": [
+        "process-manager",
+        "dynamic-router",
+        "message-history"
+      ]
+    },
+    {
+      "slug": "process-manager",
+      "name": "Process Manager",
+      "category": "Message Routing",
+      "intent": "Coordinate a multi-step message-driven process whose next actions depend on state and events.",
+      "whenToUse": [
+        "A long-running business process spans services or time.",
+        "The next step depends on prior outcomes.",
+        "State, timeouts, compensation, and correlation need an owner."
+      ],
+      "avoidWhen": [
+        "The flow is a simple static pipeline.",
+        "The manager becomes a central transaction substitute.",
+        "Durable process state is not available."
+      ],
+      "related": [
+        "routing-slip",
+        "correlation-identifier",
+        "message-store"
+      ]
+    },
+    {
+      "slug": "message-broker",
+      "name": "Message Broker",
+      "category": "Message Routing",
+      "intent": "Centralize routing, transformation, and mediation between message producers and consumers.",
+      "whenToUse": [
+        "Many systems need controlled integration mediation.",
+        "Routing and translation rules should be managed centrally.",
+        "The broker can provide consistent observability and policy."
+      ],
+      "avoidWhen": [
+        "A central broker becomes a monolith of integration logic.",
+        "Teams lose ownership of contracts.",
+        "Performance or availability depends on one chokepoint."
+      ],
+      "related": [
+        "message-router",
+        "message-translator",
+        "message-bus"
+      ]
+    },
+    {
+      "slug": "envelope-wrapper",
+      "name": "Envelope Wrapper",
+      "category": "Message Transformation",
+      "intent": "Wrap existing payload data with headers or envelope structure required by the messaging system.",
+      "whenToUse": [
+        "Payloads need metadata, security, addressing, or protocol framing.",
+        "Core business data should remain separate from transport concerns.",
+        "Legacy payloads must move through modern infrastructure."
+      ],
+      "avoidWhen": [
+        "The wrapper obscures payload ownership or versioning.",
+        "Nested envelopes accumulate across systems.",
+        "Consumers parse transport metadata as business data."
+      ],
+      "related": [
+        "message-translator",
+        "format-indicator",
+        "claim-check"
+      ]
+    },
+    {
+      "slug": "content-enricher",
+      "name": "Content Enricher",
+      "category": "Message Transformation",
+      "intent": "Add missing data to a message before downstream processing.",
+      "whenToUse": [
+        "The sender lacks data required by the receiver.",
+        "Enrichment data has a clear authoritative source.",
+        "Latency, cache policy, and failure behavior are acceptable."
+      ],
+      "avoidWhen": [
+        "Enrichment hides missing upstream contract ownership.",
+        "External lookups make flow unreliable without fallback.",
+        "Sensitive data is added unnecessarily."
+      ],
+      "related": [
+        "content-filter",
+        "claim-check",
+        "message-translator"
+      ]
+    },
+    {
+      "slug": "content-filter",
+      "name": "Content Filter",
+      "category": "Message Transformation",
+      "intent": "Remove unneeded data from a message before forwarding it.",
+      "whenToUse": [
+        "Downstream systems need only a subset of the payload.",
+        "Privacy, bandwidth, or contract clarity requires trimming fields.",
+        "The filtered message remains semantically complete for its purpose."
+      ],
+      "avoidWhen": [
+        "Filtering removes data needed for auditing or compensation.",
+        "Each consumer defines its own incompatible subset.",
+        "The transformation masks an oversized canonical model."
+      ],
+      "related": [
+        "content-enricher",
+        "claim-check",
+        "message-filter"
+      ]
+    },
+    {
+      "slug": "claim-check",
+      "name": "Claim Check",
+      "category": "Message Transformation",
+      "intent": "Store bulky data elsewhere and send a reference through the message flow.",
+      "whenToUse": [
+        "Payloads are too large or sensitive for the broker.",
+        "Consumers can dereference the payload with proper authorization.",
+        "Lifecycle and cleanup of stored content are managed."
+      ],
+      "avoidWhen": [
+        "The referenced data may disappear before consumption.",
+        "Access control cannot be enforced.",
+        "The reference creates tight coupling to storage internals."
+      ],
+      "related": [
+        "message-sequence",
+        "content-filter",
+        "message-store"
+      ]
+    },
+    {
+      "slug": "normalizer",
+      "name": "Normalizer",
+      "category": "Message Transformation",
+      "intent": "Transform different incoming formats into one common message shape.",
+      "whenToUse": [
+        "Multiple sources represent the same concept differently.",
+        "Downstream components benefit from one canonical input.",
+        "Source-specific mappings can be isolated and tested."
+      ],
+      "avoidWhen": [
+        "A single canonical shape loses important source distinctions.",
+        "Mappings change faster than downstream consumers can tolerate.",
+        "Normalization logic becomes scattered."
+      ],
+      "related": [
+        "canonical-data-model",
+        "message-translator",
+        "format-indicator"
+      ]
+    },
+    {
+      "slug": "canonical-data-model",
+      "name": "Canonical Data Model",
+      "category": "Message Transformation",
+      "intent": "Define a shared data representation that reduces pairwise transformations.",
+      "whenToUse": [
+        "Many systems exchange overlapping business concepts.",
+        "A governed common model can lower integration complexity.",
+        "Domain ownership and versioning can be managed."
+      ],
+      "avoidWhen": [
+        "The canonical model becomes a lowest-common-denominator enterprise schema.",
+        "Teams cannot govern changes.",
+        "Local bounded contexts need different meanings for the same terms."
+      ],
+      "related": [
+        "normalizer",
+        "message-bus",
+        "message-translator"
+      ]
+    },
+    {
+      "slug": "messaging-gateway",
+      "name": "Messaging Gateway",
+      "category": "Messaging Endpoints",
+      "intent": "Expose messaging operations through an application-facing interface.",
+      "whenToUse": [
+        "Domain code should not depend on broker APIs.",
+        "Sending and receiving policies need a testable abstraction.",
+        "Application code benefits from task-oriented messaging methods."
+      ],
+      "avoidWhen": [
+        "The gateway hides important asynchronous failure semantics.",
+        "It becomes a general service locator.",
+        "Broker-specific behavior leaks through anyway."
+      ],
+      "related": [
+        "messaging-mapper",
+        "channel-adapter",
+        "facade"
+      ]
+    },
+    {
+      "slug": "messaging-mapper",
+      "name": "Messaging Mapper",
+      "category": "Messaging Endpoints",
+      "intent": "Map between domain objects and messaging representations.",
+      "whenToUse": [
+        "Domain models should remain independent of transport schemas.",
+        "Mapping rules need tests and version awareness.",
+        "Messages carry a different shape from domain objects."
+      ],
+      "avoidWhen": [
+        "Mapping duplicates the same schema without value.",
+        "Domain objects leak transport metadata.",
+        "Mapping logic is split across endpoints."
+      ],
+      "related": [
+        "message-translator",
+        "messaging-gateway",
+        "adapter"
+      ]
+    },
+    {
+      "slug": "transactional-client",
+      "name": "Transactional Client",
+      "category": "Messaging Endpoints",
+      "intent": "Coordinate message send or receive work with transactional boundaries.",
+      "whenToUse": [
+        "Message acknowledgement and local state changes must be coordinated.",
+        "The messaging system supports transactions or reliable outbox/inbox patterns.",
+        "Failure behavior can be tested under retries."
+      ],
+      "avoidWhen": [
+        "Distributed transactions are assumed but unsupported.",
+        "Side effects outside the transaction are not idempotent.",
+        "Transaction scope is too broad."
+      ],
+      "related": [
+        "guaranteed-delivery",
+        "idempotent-receiver",
+        "message-store"
+      ]
+    },
+    {
+      "slug": "polling-consumer",
+      "name": "Polling Consumer",
+      "category": "Messaging Endpoints",
+      "intent": "Let an application request messages when it is ready to process them.",
+      "whenToUse": [
+        "The consumer needs control over timing or rate.",
+        "Batching or scheduled processing is useful.",
+        "Infrastructure does not push messages."
+      ],
+      "avoidWhen": [
+        "Low latency is required.",
+        "Polling wastes resources or causes uneven load.",
+        "Backoff and concurrency are unmanaged."
+      ],
+      "related": [
+        "event-driven-consumer",
+        "competing-consumers",
+        "message-endpoint"
+      ]
+    },
+    {
+      "slug": "event-driven-consumer",
+      "name": "Event-Driven Consumer",
+      "category": "Messaging Endpoints",
+      "intent": "Invoke consumer logic automatically when messages arrive.",
+      "whenToUse": [
+        "The system should react quickly to new messages.",
+        "The runtime can manage listener lifecycle and concurrency.",
+        "Backpressure and error handling are explicit."
+      ],
+      "avoidWhen": [
+        "The consumer cannot handle bursts.",
+        "Processing needs carefully scheduled windows.",
+        "Listener failures are hard to observe."
+      ],
+      "related": [
+        "polling-consumer",
+        "message-dispatcher",
+        "competing-consumers"
+      ]
+    },
+    {
+      "slug": "competing-consumers",
+      "name": "Competing Consumers",
+      "category": "Messaging Endpoints",
+      "intent": "Run multiple consumers against one channel so work is distributed among them.",
+      "whenToUse": [
+        "Throughput should scale horizontally.",
+        "Each message should be handled by one consumer instance.",
+        "Processing is idempotent or broker locks are reliable."
+      ],
+      "avoidWhen": [
+        "Strict ordering per stream is required and not partitioned.",
+        "Duplicate processing would cause unsafe side effects.",
+        "Consumers contend for scarce downstream resources."
+      ],
+      "related": [
+        "point-to-point-channel",
+        "idempotent-receiver",
+        "message-dispatcher"
+      ]
+    },
+    {
+      "slug": "message-dispatcher",
+      "name": "Message Dispatcher",
+      "category": "Messaging Endpoints",
+      "intent": "Coordinate message delivery from one channel to multiple local handlers.",
+      "whenToUse": [
+        "Several handlers share one consumer connection.",
+        "Dispatch policy should be local and explicit.",
+        "Handlers can be selected by type, header, or predicate."
+      ],
+      "avoidWhen": [
+        "Dispatch duplicates broker routing badly.",
+        "Handler failures affect unrelated handlers.",
+        "A framework dispatcher already handles this cleanly."
+      ],
+      "related": [
+        "selective-consumer",
+        "event-driven-consumer",
+        "message-router"
+      ]
+    },
+    {
+      "slug": "selective-consumer",
+      "name": "Selective Consumer",
+      "category": "Messaging Endpoints",
+      "intent": "Let a consumer receive only messages that match selection criteria.",
+      "whenToUse": [
+        "Filtering at the broker or endpoint reduces unnecessary work.",
+        "Selection can be expressed in headers or broker-supported predicates.",
+        "Consumers own clear subscriptions."
+      ],
+      "avoidWhen": [
+        "Filtering requires expensive payload inspection.",
+        "Selection rules hide business routing.",
+        "A separate channel per type would be clearer."
+      ],
+      "related": [
+        "message-filter",
+        "datatype-channel",
+        "message-dispatcher"
+      ]
+    },
+    {
+      "slug": "durable-subscriber",
+      "name": "Durable Subscriber",
+      "category": "Messaging Endpoints",
+      "intent": "Preserve pub-sub messages for a subscriber while it is disconnected.",
+      "whenToUse": [
+        "A subscriber must not miss messages during downtime.",
+        "The broker supports durable subscriptions or consumer groups.",
+        "Retention and replay windows are governed."
+      ],
+      "avoidWhen": [
+        "The subscriber only needs live notifications.",
+        "Backlogs can grow without bounds.",
+        "Replay would trigger unsafe duplicate effects."
+      ],
+      "related": [
+        "publish-subscribe-channel",
+        "guaranteed-delivery",
+        "message-store"
+      ]
+    },
+    {
+      "slug": "idempotent-receiver",
+      "name": "Idempotent Receiver",
+      "category": "Messaging Endpoints",
+      "intent": "Handle duplicate messages without repeating unsafe side effects.",
+      "whenToUse": [
+        "At-least-once delivery can produce duplicates.",
+        "Retries and redelivery are expected.",
+        "A stable message identity or business key exists."
+      ],
+      "avoidWhen": [
+        "The receiver cannot identify duplicates.",
+        "Deduplication state grows without retention policy.",
+        "The design assumes exactly-once behavior without proof."
+      ],
+      "related": [
+        "guaranteed-delivery",
+        "dead-letter-channel",
+        "transactional-client"
+      ]
+    },
+    {
+      "slug": "service-activator",
+      "name": "Service Activator",
+      "category": "Messaging Endpoints",
+      "intent": "Invoke application service behavior in response to a message.",
+      "whenToUse": [
+        "Existing service logic should be available through messaging.",
+        "Endpoint code can translate messages into service calls.",
+        "The same service may be invoked through other transports."
+      ],
+      "avoidWhen": [
+        "The message model forces service methods into poor shapes.",
+        "Service calls are not idempotent under retries.",
+        "Transport concerns leak into the service API."
+      ],
+      "related": [
+        "command-message",
+        "messaging-gateway",
+        "adapter"
+      ]
+    },
+    {
+      "slug": "control-bus",
+      "name": "Control Bus",
+      "category": "System Management",
+      "intent": "Use a messaging channel for operational commands and telemetry about the messaging system.",
+      "whenToUse": [
+        "Operators need distributed control and status signals.",
+        "Management commands should flow through controlled channels.",
+        "Runtime components can publish health and metrics events."
+      ],
+      "avoidWhen": [
+        "Control messages share channels with business traffic without isolation.",
+        "Authorization and audit are weak.",
+        "Operations would be simpler through platform-native tooling."
+      ],
+      "related": [
+        "message-bus",
+        "wire-tap",
+        "test-message"
+      ]
+    },
+    {
+      "slug": "detour",
+      "name": "Detour",
+      "category": "System Management",
+      "intent": "Temporarily route messages through extra steps for validation, testing, or troubleshooting.",
+      "whenToUse": [
+        "A flow needs controlled inspection or alternate processing.",
+        "Operators can enable and disable the route safely.",
+        "The detour path preserves semantics and observability."
+      ],
+      "avoidWhen": [
+        "Temporary routing becomes permanent hidden behavior.",
+        "Detours alter production messages unexpectedly.",
+        "Change control and rollback are missing."
+      ],
+      "related": [
+        "wire-tap",
+        "control-bus",
+        "message-router"
+      ]
+    },
+    {
+      "slug": "wire-tap",
+      "name": "Wire Tap",
+      "category": "System Management",
+      "intent": "Copy messages from a channel for monitoring, audit, or diagnostics without disturbing the main flow.",
+      "whenToUse": [
+        "Operators need visibility into live traffic.",
+        "Copies can be secured, sampled, and retained appropriately.",
+        "The main path must remain unaffected."
+      ],
+      "avoidWhen": [
+        "Taps expose sensitive payloads without controls.",
+        "Diagnostics add meaningful latency or backpressure.",
+        "Copied data is mistaken for authoritative processing."
+      ],
+      "related": [
+        "message-history",
+        "message-store",
+        "detour"
+      ]
+    },
+    {
+      "slug": "message-history",
+      "name": "Message History",
+      "category": "System Management",
+      "intent": "Record the components or steps a message has passed through.",
+      "whenToUse": [
+        "Troubleshooting needs route and processing lineage.",
+        "Messages cross several routers or processors.",
+        "History metadata can be bounded and privacy-safe."
+      ],
+      "avoidWhen": [
+        "History grows without limits.",
+        "Metadata leaks sensitive topology or user information.",
+        "Tracing infrastructure already captures the needed information."
+      ],
+      "related": [
+        "correlation-identifier",
+        "wire-tap",
+        "message-store"
+      ]
+    },
+    {
+      "slug": "message-store",
+      "name": "Message Store",
+      "category": "System Management",
+      "intent": "Persist messages or selected metadata for audit, replay, analytics, or diagnostics.",
+      "whenToUse": [
+        "Transient broker traffic must be queried later.",
+        "Replay, reconciliation, or compliance requires retained records.",
+        "Retention, masking, and access policy are explicit."
+      ],
+      "avoidWhen": [
+        "The store becomes an ungoverned shadow database.",
+        "Payload retention violates privacy or cost constraints.",
+        "Replay semantics are unsafe."
+      ],
+      "related": [
+        "wire-tap",
+        "message-history",
+        "dead-letter-channel"
+      ]
+    },
+    {
+      "slug": "smart-proxy",
+      "name": "Smart Proxy",
+      "category": "System Management",
+      "intent": "Intercept request-reply conversations to preserve correlation or routing information across intermediaries.",
+      "whenToUse": [
+        "Intermediaries rewrite message IDs or reply addresses.",
+        "The original requester still needs a coherent response.",
+        "Correlation state can be stored and expired safely."
+      ],
+      "avoidWhen": [
+        "The proxy becomes a hidden dependency for all replies.",
+        "State cleanup is unreliable.",
+        "Direct preservation of headers would be simpler."
+      ],
+      "related": [
+        "request-reply",
+        "return-address",
+        "correlation-identifier"
+      ]
+    },
+    {
+      "slug": "test-message",
+      "name": "Test Message",
+      "category": "System Management",
+      "intent": "Send known diagnostic messages through the system to verify behavior.",
+      "whenToUse": [
+        "Operators need live confidence that routes and consumers work.",
+        "Synthetic traffic can be identified and isolated.",
+        "Health checks should exercise the real messaging path."
+      ],
+      "avoidWhen": [
+        "Test messages can trigger real business side effects.",
+        "Synthetic traffic is indistinguishable from production data.",
+        "The checks create noise or false confidence."
+      ],
+      "related": [
+        "control-bus",
+        "detour",
+        "invalid-message-channel"
+      ]
+    },
+    {
+      "slug": "channel-purger",
+      "name": "Channel Purger",
+      "category": "System Management",
+      "intent": "Remove unwanted messages from a channel to restore a clean operating or test state.",
+      "whenToUse": [
+        "Test environments need predictable queue state.",
+        "Poison or obsolete messages must be cleared under control.",
+        "Purge actions are auditable and reversible where necessary."
+      ],
+      "avoidWhen": [
+        "Purging could destroy unprocessed business work.",
+        "Operators lack precise targeting.",
+        "A retention or dead-letter policy would solve the problem more safely."
+      ],
+      "related": [
+        "dead-letter-channel",
+        "control-bus",
+        "message-store"
+      ]
+    }
+  ]
+}
+

@@ -1,0 +1,11 @@
+Design Pattern References
+
+This repository contains original summaries and Claude Code plugin guidance for established software architecture patterns.
+
+Pattern catalogs are attributed as follows:
+
+- Gang of Four design patterns: Erich Gamma, Richard Helm, Ralph Johnson, and John Vlissides, Design Patterns: Elements of Reusable Object-Oriented Software.
+- Enterprise Integration Patterns: Gregor Hohpe and Bobby Woolf, Enterprise Integration Patterns. Public pattern index: https://www.enterpriseintegrationpatterns.com/patterns/messaging/toc.html
+
+Pattern names and categories are used for reference and interoperability. Explanatory text in this repository is original.
+

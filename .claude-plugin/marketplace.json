@@ -1,0 +1,39 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "bytedesk-design-patterns",
+  "description": "ByteDeskAI marketplace for reusable design-pattern skills and reference catalogs.",
+  "version": "0.1.0",
+  "owner": {
+    "name": "ByteDeskAI"
+  },
+  "plugins": [
+    {
+      "name": "design-patterns",
+      "source": "./plugins/design-patterns",
+      "description": "Pattern advisor for Gang of Four object-oriented patterns and Enterprise Integration Patterns.",
+      "version": "0.1.0",
+      "author": {
+        "name": "ByteDeskAI"
+      },
+      "homepage": "https://github.com/ByteDeskAI/design-pattern-references",
+      "repository": "https://github.com/ByteDeskAI/design-pattern-references",
+      "license": "Apache-2.0",
+      "category": "architecture",
+      "tags": [
+        "architecture",
+        "design-patterns",
+        "gof",
+        "enterprise-integration-patterns",
+        "claude-code"
+      ],
+      "keywords": [
+        "patterns",
+        "architecture",
+        "refactoring",
+        "integration",
+        "messaging"
+      ]
+    }
+  ]
+}
+

@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "0.1.0",
+  "languages": {
+    "csharp": {
+      "displayName": "C# / .NET",
+      "gofIdioms": [
+        "Prefer interfaces, records, delegates, extension methods, and dependency injection before adding pattern machinery.",
+        "Use factories and strategies at composition boundaries; keep domain code free of container dependencies.",
+        "Use async streams, channels, hosted services, and middleware pipelines for workflow-style patterns."
+      ],
+      "eipStacks": [
+        "MassTransit",
+        "NServiceBus",
+        "Wolverine",
+        "Azure Service Bus",
+        "RabbitMQ",
+        "Kafka"
+      ]
+    },
+    "java": {
+      "displayName": "Java / JVM",
+      "gofIdioms": [
+        "Use interfaces, records, enums, lambdas, sealed types, builders, and dependency injection frameworks judiciously.",
+        "Prefer Strategy, Template Method, and Factory Method when framework extension points already expect them.",
+        "Watch for overuse of Abstract Factory and Singleton in codebases already managed by Spring or Jakarta EE."
+      ],
+      "eipStacks": [
+        "Apache Camel",
+        "Spring Integration",
+        "Spring Cloud Stream",
+        "Kafka Streams",
+        "JMS",
+        "RabbitMQ"
+      ]
+    },
+    "typescript": {
+      "displayName": "TypeScript / JavaScript",
+      "gofIdioms": [
+        "Prefer first-class functions, discriminated unions, modules, and plain objects before class-heavy pattern ports.",
+        "Use Strategy as function maps, Adapter as boundary modules, and Observer through event emitters or reactive streams.",
+        "Keep factories typed and narrow; avoid hiding simple object construction behind generic registries."
+      ],
+      "eipStacks": [
+        "NestJS",
+        "KafkaJS",
+        "NATS",
+        "BullMQ",
+        "Temporal",
+        "RxJS"
+      ]
+    },
+    "python": {
+      "displayName": "Python",
+      "gofIdioms": [
+        "Use duck typing, protocols, decorators, context managers, dataclasses, and functions before porting class diagrams.",
+        "Strategy, Command, Adapter, and Decorator are often simple callables or wrapper objects.",
+        "Reserve formal factories for plugin loading, external resources, or complicated construction policies."
+      ],
+      "eipStacks": [
+        "Celery",
+        "Dramatiq",
+        "Faust",
+        "FastStream",
+        "aio-pika",
+        "Kafka"
+      ]
+    },
+    "go": {
+      "displayName": "Go",
+      "gofIdioms": [
+        "Prefer small interfaces at consumers, functions, composition, and explicit construction.",
+        "Many GoF patterns collapse into interfaces plus structs; avoid Java-style inheritance emulation.",
+        "Use channels and context cancellation carefully; they do not replace durable messaging semantics."
+      ],
+      "eipStacks": [
+        "Watermill",
+        "NATS",
+        "Kafka",
+        "RabbitMQ",
+        "Temporal",
+        "gRPC"
+      ]
+    },
+    "rust": {
+      "displayName": "Rust",
+      "gofIdioms": [
+        "Prefer traits, enums, pattern matching, ownership boundaries, and zero-cost abstractions.",
+        "Use Strategy with generic trait bounds or trait objects depending on whether runtime dispatch is needed.",
+        "Builder is common for complex configuration; Singleton usually becomes explicit shared state with OnceLock or dependency injection."
+      ],
+      "eipStacks": [
+        "Tokio",
+        "async-nats",
+        "rdkafka",
+        "lapin",
+        "Axum",
+        "Tower"
+      ]
+    },
+    "cpp": {
+      "displayName": "C++",
+      "gofIdioms": [
+        "Use RAII, templates, value semantics, smart pointers, and policies before introducing heap-heavy object networks.",
+        "Factory, Prototype, Strategy, and Visitor still appear often, but ownership should be explicit.",
+        "Prefer modern C++ variants and concepts where they make runtime polymorphism unnecessary."
+      ],
+      "eipStacks": [
+        "Boost.Asio",
+        "ZeroMQ",
+        "Poco",
+        "gRPC",
+        "Kafka clients",
+        "DDS"
+      ]
+    }
+  }
+}
+
