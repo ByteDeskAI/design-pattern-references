@@ -1,6 +1,6 @@
 # Design Pattern References
 
-Claude Code plugin marketplace for reusable design-pattern guidance.
+Claude Code and Codex plugin marketplace for reusable design-pattern guidance.
 
 This repository is intended to be hosted at `ByteDeskAI/design-pattern-references` and added to Claude Code as a marketplace:
 
@@ -9,26 +9,34 @@ claude plugin marketplace add ByteDeskAI/design-pattern-references
 claude plugin install design-patterns@bytedesk-design-patterns
 ```
 
+It can also be added to Codex as a marketplace:
+
+```bash
+codex plugin marketplace add ByteDeskAI/design-pattern-references
+```
+
 For local development from this checkout:
 
 ```bash
 claude plugin validate .
 claude plugin marketplace add .
 claude plugin install design-patterns@bytedesk-design-patterns
+codex plugin marketplace add .
 ```
 
 ## What Is Included
 
 - A Claude Code marketplace manifest at `.claude-plugin/marketplace.json`.
+- A Codex marketplace manifest at `.agents/plugins/marketplace.json`.
 - One installable plugin at `plugins/design-patterns`.
 - A source-neutral Markdown catalog of reusable design patterns.
 - Pattern domains for object design, integration design, messaging, transformation, endpoints, operations, construction, structure, and collaboration.
 - Language profiles for C#, Java, TypeScript, Python, Go, Rust, and C++.
-- A bundled `patterns` CLI that Claude can use after the plugin is installed.
+- A bundled `patterns` CLI that Claude Code and Codex can use after the plugin is installed.
 
 ## Plugin Capability
 
-After installation, Claude can use the `design-patterns` plugin when the user asks for pattern selection, architecture tradeoffs, refactoring guidance, or language-specific implementation approaches.
+After installation, Claude Code or Codex can use the `design-patterns` plugin when the user asks for pattern selection, architecture tradeoffs, refactoring guidance, or language-specific implementation approaches.
 
 The plugin contributes:
 
@@ -42,7 +50,7 @@ The plugin contributes:
 - `data/patterns/*.md`: canonical Markdown pattern entries.
 - `data/languages/*.md`: canonical Markdown language profiles.
 
-Each skill declares fully qualified Claude Code frontmatter: `name`, `description`, `when_to_use`, `argument-hint`, invocation controls, conservative `allowed-tools`, and `model: inherit`.
+Each skill declares fully qualified skill frontmatter: `name`, `description`, `when_to_use`, `argument-hint`, invocation controls, conservative `allowed-tools`, and `model: inherit`.
 
 ## Catalog Model
 
@@ -95,15 +103,20 @@ If Claude Code is installed, also run:
 claude plugin validate .
 ```
 
+Codex marketplace metadata is validated by `scripts/validate_catalog.py`.
+
 ## Repository Layout
 
 ```text
 .
 ├── .claude-plugin/
 │   └── marketplace.json
+├── .agents/
+│   └── plugins/marketplace.json
 ├── plugins/
 │   └── design-patterns/
 │       ├── .claude-plugin/plugin.json
+│       ├── .codex-plugin/plugin.json
 │       ├── agents/pattern-architect.md
 │       ├── bin/patterns
 │       ├── data/

@@ -1,0 +1,38 @@
+{
+  "name": "design-patterns",
+  "version": "0.3.0",
+  "description": "Source-neutral advisor and Markdown reference catalog for software design patterns.",
+  "author": {
+    "name": "ByteDeskAI",
+    "url": "https://github.com/ByteDeskAI"
+  },
+  "homepage": "https://github.com/ByteDeskAI/design-pattern-references",
+  "repository": "https://github.com/ByteDeskAI/design-pattern-references",
+  "license": "Apache-2.0",
+  "keywords": [
+    "design-patterns",
+    "language-patterns",
+    "integration-design",
+    "architecture",
+    "refactoring"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Design Patterns",
+    "shortDescription": "Pattern advice, architecture review, and refactoring guidance.",
+    "longDescription": "A source-neutral Markdown catalog and skill bundle for finding, reviewing, and applying reusable software design patterns across object design, integration design, and language-specific implementation idioms.",
+    "developerName": "ByteDeskAI",
+    "category": "Engineering",
+    "capabilities": [
+      "Interactive",
+      "Read"
+    ],
+    "websiteURL": "https://github.com/ByteDeskAI/design-pattern-references",
+    "defaultPrompt": [
+      "Find the right pattern for this design problem.",
+      "Review this architecture for pattern issues.",
+      "Refactor this module toward a cleaner pattern."
+    ]
+  }
+}
+

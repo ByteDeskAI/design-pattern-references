@@ -64,14 +64,31 @@ def parse_frontmatter(text: str, label: str) -> dict[str, str]:
     return frontmatter
 
 
-def validate_manifest() -> None:
+def validate_claude_manifest() -> None:
     marketplace = load_json(ROOT / ".claude-plugin" / "marketplace.json")
     plugin = load_json(PLUGIN / ".claude-plugin" / "plugin.json")
-    require(KEBAB.match(marketplace["name"]) is not None, "Marketplace name must be kebab-case")
-    require(KEBAB.match(plugin["name"]) is not None, "Plugin name must be kebab-case")
-    require(marketplace["plugins"][0]["source"] == "./plugins/design-patterns", "Marketplace source must stay relative to marketplace root")
-    require(marketplace["plugins"][0]["name"] == plugin["name"], "Marketplace plugin name must match plugin manifest")
-    require(marketplace["plugins"][0]["version"] == plugin["version"], "Marketplace and plugin versions must match")
+    require(KEBAB.match(marketplace["name"]) is not None, "Claude marketplace name must be kebab-case")
+    require(KEBAB.match(plugin["name"]) is not None, "Claude plugin name must be kebab-case")
+    require(marketplace["plugins"][0]["source"] == "./plugins/design-patterns", "Claude marketplace source must stay relative to marketplace root")
+    require(marketplace["plugins"][0]["name"] == plugin["name"], "Claude marketplace plugin name must match plugin manifest")
+    require(marketplace["plugins"][0]["version"] == plugin["version"], "Claude marketplace and plugin versions must match")
+
+
+def validate_codex_manifest() -> None:
+    marketplace = load_json(ROOT / ".agents" / "plugins" / "marketplace.json")
+    plugin = load_json(PLUGIN / ".codex-plugin" / "plugin.json")
+    require(KEBAB.match(marketplace["name"]) is not None, "Codex marketplace name must be kebab-case")
+    require(KEBAB.match(plugin["name"]) is not None, "Codex plugin name must be kebab-case")
+    require(marketplace["plugins"], "Codex marketplace must list at least one plugin")
+    entry = marketplace["plugins"][0]
+    require(entry["name"] == plugin["name"], "Codex marketplace plugin name must match plugin manifest")
+    require(entry["source"]["source"] == "local", "Codex marketplace source must be local")
+    require(entry["source"]["path"] == "./plugins/design-patterns", "Codex marketplace source path must stay relative to marketplace root")
+    require(entry["policy"]["installation"] in {"NOT_AVAILABLE", "AVAILABLE", "INSTALLED_BY_DEFAULT"}, "Codex installation policy is invalid")
+    require(entry["policy"]["authentication"] in {"ON_INSTALL", "ON_USE"}, "Codex authentication policy is invalid")
+    require(entry.get("category"), "Codex marketplace entry must include category")
+    require(plugin["skills"] == "./skills/", "Codex plugin must expose the shared skills directory")
+    require(plugin["version"] == load_json(PLUGIN / ".claude-plugin" / "plugin.json")["version"], "Claude and Codex plugin versions must match")
 
 
 def validate_markdown_only_data() -> None:
@@ -146,12 +163,13 @@ def validate_skills() -> None:
 
 
 def main() -> int:
-    validate_manifest()
+    validate_claude_manifest()
+    validate_codex_manifest()
     validate_markdown_only_data()
     validate_patterns()
     validate_languages()
     validate_skills()
-    print("Markdown catalog and skill metadata validation passed.")
+    print("Marketplace metadata, Markdown catalog, and skill metadata validation passed.")
     return 0
 
 
