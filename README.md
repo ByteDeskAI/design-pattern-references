@@ -21,9 +21,9 @@ claude plugin install design-patterns@bytedesk-design-patterns
 
 - A Claude Code marketplace manifest at `.claude-plugin/marketplace.json`.
 - One installable plugin at `plugins/design-patterns`.
-- Structured catalogs for all 23 Gang of Four patterns.
-- Structured catalog entries for the Enterprise Integration Patterns messaging catalog.
-- Language-specific GoF implementation notes for C#, Java, TypeScript, Python, Go, Rust, and C++.
+- A source-neutral Markdown catalog of reusable design patterns.
+- Pattern domains for object design, integration design, messaging, transformation, endpoints, operations, construction, structure, and collaboration.
+- Language profiles for C#, Java, TypeScript, Python, Go, Rust, and C++.
 - A bundled `patterns` CLI that Claude can use after the plugin is installed.
 
 ## Plugin Capability
@@ -36,16 +36,48 @@ The plugin contributes:
 - `skills/pattern-finder/SKILL.md`: discover and compare candidate patterns from a problem statement.
 - `skills/architecture-issue-scan/SKILL.md`: find design and integration issues in code or architecture notes.
 - `skills/pattern-application/SKILL.md`: plan and apply a pattern-oriented refactor safely.
-- `skills/integration-flow-review/SKILL.md`: review message-driven flows with Enterprise Integration Patterns.
+- `skills/integration-flow-review/SKILL.md`: review message-driven and integration flows.
 - `agents/pattern-architect.md`: deeper architecture and design-review agent.
 - `bin/patterns`: local catalog lookup helper.
-- `data/gof.json`, `data/eip.json`, and `data/languages.json`: the bundled reference catalogs.
+- `data/patterns/*.md`: canonical Markdown pattern entries.
+- `data/languages/*.md`: canonical Markdown language profiles.
 
-## Catalog Sources
+## Catalog Model
 
-The GoF catalog uses the canonical 23 pattern names and categories from *Design Patterns: Elements of Reusable Object-Oriented Software*. The Enterprise Integration Patterns catalog is based on the public messaging table of contents at [enterpriseintegrationpatterns.com](https://www.enterpriseintegrationpatterns.com/patterns/messaging/toc.html).
+The catalog is intentionally source-neutral. Patterns are organized by domain, category, group, and language applicability rather than by origin. New patterns can be added from any useful tradition, codebase, architecture review, or language ecosystem by adding a Markdown file under `plugins/design-patterns/data/patterns`.
 
-Descriptions, selection guidance, implementation notes, and language guidance in this repository are original summaries written for this plugin. They are not copied from the source books or website.
+Each pattern file uses frontmatter for machine filtering and Markdown sections for Claude-readable guidance:
+
+```text
+---
+slug: strategy
+name: Strategy
+domain: behavior-and-collaboration
+category: Behavior and Collaboration
+groups:
+  - object-design
+languages:
+  - csharp
+  - typescript
+related:
+  - state
+---
+
+# Strategy
+
+## Intent
+...
+```
+
+Use the CLI to inspect the catalog:
+
+```bash
+plugins/design-patterns/bin/patterns domains
+plugins/design-patterns/bin/patterns list object-design --language typescript
+plugins/design-patterns/bin/patterns search router --scope integration-design --language typescript
+plugins/design-patterns/bin/patterns show strategy --language csharp
+plugins/design-patterns/bin/patterns languages go
+```
 
 ## Validation
 
@@ -73,9 +105,9 @@ claude plugin validate .
 │       ├── agents/pattern-architect.md
 │       ├── bin/patterns
 │       ├── data/
-│       │   ├── eip.json
-│       │   ├── gof.json
-│       │   └── languages.json
+│       │   ├── languages/*.md
+│       │   └── patterns/*.md
+│       ├── lib/pattern_catalog.py
 │       └── skills/
 │           ├── architecture-issue-scan/SKILL.md
 │           ├── integration-flow-review/SKILL.md
@@ -87,4 +119,4 @@ claude plugin validate .
 
 ## Versioning
 
-The marketplace and plugin both start at `0.1.0`. Bump both versions when publishing catalog or capability changes that users should receive through marketplace updates.
+The marketplace and plugin versions move together. Bump both versions when publishing catalog or capability changes that users should receive through marketplace updates.

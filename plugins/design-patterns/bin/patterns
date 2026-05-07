@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Search the bundled design-pattern catalogs."""
+"""Search the bundled Markdown-backed design-pattern catalog."""
 
 from __future__ import annotations
 
@@ -10,43 +10,61 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA = ROOT / "data"
+sys.path.insert(0, str(ROOT / "lib"))
+
+from pattern_catalog import attach_language, load_language_profiles, load_patterns, matches_scope, scope_names
 
 
-def load_json(name: str) -> dict:
-    with (DATA / name).open("r", encoding="utf-8") as handle:
-        return json.load(handle)
-
-
-def all_patterns() -> list[dict]:
-    gof = load_json("gof.json")["patterns"]
-    eip = load_json("eip.json")["patterns"]
-    return [{**pattern, "catalog": "gof"} for pattern in gof] + [
-        {**pattern, "catalog": "eip"} for pattern in eip
-    ]
-
-
-def emit(value: object, as_json: bool) -> None:
+def emit(value: object, as_json: bool, language: str | None = None) -> None:
     if as_json:
         print(json.dumps(value, indent=2, sort_keys=True))
         return
     if isinstance(value, list):
         for item in value:
             if isinstance(item, dict):
-                print(f"{item.get('slug')}: {item.get('name')} [{item.get('catalog', item.get('category'))}]")
+                print(f"{item.get('slug')}: {item.get('name')} [{item.get('domain')}]")
             else:
                 print(item)
         return
     if isinstance(value, dict):
+        if isinstance(value.get("languages"), dict):
+            for slug, profile in value["languages"].items():
+                print(f"{slug}: {profile['displayName']}")
+            return
+        if "domains" in value:
+            print("Groups:")
+            for group in value["groups"]:
+                print(f"- {group}")
+            print("Domains:")
+            for domain in value["domains"]:
+                print(f"- {domain}")
+            return
+        if "displayName" in value and "slug" in value and "name" not in value:
+            print(f"{value['slug']}: {value['displayName']}")
+            if value.get("objectDesignIdioms"):
+                print("Object design idioms:")
+                for item in value["objectDesignIdioms"]:
+                    print(f"- {item}")
+            if value.get("integrationStacks"):
+                print("Integration stacks:")
+                for item in value["integrationStacks"]:
+                    print(f"- {item}")
+            return
         print(f"{value.get('name')} ({value.get('slug')})")
-        if value.get("catalog"):
-            print(f"Catalog: {value['catalog']}")
-        if value.get("family"):
-            print(f"Family: {value['family']}")
+        if value.get("domain"):
+            print(f"Domain: {value['domain']}")
         if value.get("category"):
             print(f"Category: {value['category']}")
+        if value.get("groups"):
+            print("Groups: " + ", ".join(value["groups"]))
+        if value.get("languages"):
+            print("Languages: " + ", ".join(value["languages"]))
         if value.get("intent"):
             print(f"Intent: {value['intent']}")
+        if language and value.get("languageNote"):
+            print(f"{language}: {value['languageNote']}")
+        elif value.get("languageNotes"):
+            print("Language notes: " + ", ".join(sorted(value["languageNotes"])))
         if value.get("whenToUse"):
             print("When to use:")
             for item in value["whenToUse"]:
@@ -57,46 +75,91 @@ def emit(value: object, as_json: bool) -> None:
                 print(f"- {item}")
         if value.get("related"):
             print("Related: " + ", ".join(value["related"]))
+        if value.get("path"):
+            print(f"Path: {value['path']}")
         return
     print(value)
 
 
-def list_patterns(catalog: str, as_json: bool) -> None:
-    if catalog == "gof":
-        patterns = [{**pattern, "catalog": "gof"} for pattern in load_json("gof.json")["patterns"]]
-    elif catalog == "eip":
-        patterns = [{**pattern, "catalog": "eip"} for pattern in load_json("eip.json")["patterns"]]
-    else:
-        patterns = all_patterns()
-    emit(patterns, as_json)
+def list_patterns(scope: str, language: str | None, as_json: bool) -> None:
+    patterns = load_patterns()
+    language_profiles = load_language_profiles()
+    valid_scopes = scope_names(patterns)
+    if scope not in valid_scopes:
+        valid = ", ".join(sorted(valid_scopes))
+        raise SystemExit(f"Unknown scope: {scope}. Valid scopes: {valid}")
+    if language and language not in language_profiles:
+        raise SystemExit(f"Unknown language: {language}")
+    filtered = [
+        attach_language(pattern, language, language_profiles)
+        for pattern in patterns
+        if matches_scope(pattern, scope) and (not language or language in pattern.get("languages", []))
+    ]
+    emit(filtered, as_json)
 
 
-def search(query: str, as_json: bool) -> None:
+def search(query: str, scope: str, language: str | None, as_json: bool) -> None:
+    patterns = load_patterns()
+    language_profiles = load_language_profiles()
+    valid_scopes = scope_names(patterns)
+    if scope not in valid_scopes:
+        valid = ", ".join(sorted(valid_scopes))
+        raise SystemExit(f"Unknown scope: {scope}. Valid scopes: {valid}")
+    if language and language not in language_profiles:
+        raise SystemExit(f"Unknown language: {language}")
+
     needle = query.casefold()
     matches = []
-    for pattern in all_patterns():
+    for pattern in patterns:
+        if not matches_scope(pattern, scope):
+            continue
+        if language and language not in pattern.get("languages", []):
+            continue
         haystack = " ".join(
             str(pattern.get(field, ""))
-            for field in ("slug", "name", "family", "category", "intent")
+            for field in ("slug", "name", "domain", "category", "intent")
         ).casefold()
         if needle in haystack:
-            matches.append(pattern)
+            matches.append(attach_language(pattern, language, language_profiles))
     emit(matches, as_json)
 
 
-def show(slug_or_name: str, as_json: bool) -> int:
+def show(slug_or_name: str, language: str | None, as_json: bool) -> int:
+    patterns = load_patterns()
+    language_profiles = load_language_profiles()
     needle = slug_or_name.casefold()
-    for pattern in all_patterns():
+    for pattern in patterns:
         names = {pattern["slug"].casefold(), pattern["name"].casefold()}
         if needle in names:
-            emit(pattern, as_json)
+            try:
+                value = attach_language(pattern, language, language_profiles)
+            except ValueError as exc:
+                print(str(exc), file=sys.stderr)
+                return 1
+            emit(value, as_json, language)
             return 0
     print(f"No pattern found for: {slug_or_name}", file=sys.stderr)
     return 1
 
 
-def languages(as_json: bool) -> None:
-    emit(load_json("languages.json"), as_json)
+def languages(language: str | None, as_json: bool) -> None:
+    profiles = load_language_profiles()
+    if language:
+        if language not in profiles:
+            raise SystemExit(f"Unknown language: {language}")
+        emit(profiles[language], as_json)
+        return
+    emit({"languages": profiles}, as_json)
+
+
+def domains(as_json: bool) -> None:
+    patterns = load_patterns()
+    groups = sorted({group for pattern in patterns for group in pattern.get("groups", [])})
+    domain_data = {
+        "groups": groups,
+        "domains": sorted({pattern["domain"] for pattern in patterns}),
+    }
+    emit(domain_data, as_json)
 
 
 def main() -> int:
@@ -105,31 +168,46 @@ def main() -> int:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     list_parser = subparsers.add_parser("list", help="List patterns")
-    list_parser.add_argument("catalog", choices=["all", "gof", "eip"], nargs="?", default="all")
+    list_parser.add_argument("scope", nargs="?", default="all", help="all, a domain group, or a domain")
+    list_parser.add_argument("--language", help="Filter to a language and add language-specific guidance")
+    list_parser.add_argument("--json", action="store_true", dest="command_json", help="Emit JSON")
 
     show_parser = subparsers.add_parser("show", help="Show one pattern")
     show_parser.add_argument("slug_or_name")
+    show_parser.add_argument("--language", help="Add language-specific guidance")
+    show_parser.add_argument("--json", action="store_true", dest="command_json", help="Emit JSON")
 
     search_parser = subparsers.add_parser("search", help="Search patterns")
     search_parser.add_argument("query")
+    search_parser.add_argument("--scope", default="all", help="all, a domain group, or a domain")
+    search_parser.add_argument("--language", help="Filter to a language and add language-specific guidance")
+    search_parser.add_argument("--json", action="store_true", dest="command_json", help="Emit JSON")
 
-    subparsers.add_parser("languages", help="Show supported language notes")
+    languages_parser = subparsers.add_parser("languages", help="Show supported language profiles")
+    languages_parser.add_argument("language", nargs="?")
+    languages_parser.add_argument("--json", action="store_true", dest="command_json", help="Emit JSON")
+
+    domains_parser = subparsers.add_parser("domains", help="Show domain groups and domains")
+    domains_parser.add_argument("--json", action="store_true", dest="command_json", help="Emit JSON")
 
     args = parser.parse_args()
+    as_json = args.json or getattr(args, "command_json", False)
     if args.command == "list":
-        list_patterns(args.catalog, args.json)
+        list_patterns(args.scope, args.language, as_json)
         return 0
     if args.command == "show":
-        return show(args.slug_or_name, args.json)
+        return show(args.slug_or_name, args.language, as_json)
     if args.command == "search":
-        search(args.query, args.json)
+        search(args.query, args.scope, args.language, as_json)
         return 0
     if args.command == "languages":
-        languages(args.json)
+        languages(args.language, as_json)
+        return 0
+    if args.command == "domains":
+        domains(as_json)
         return 0
     return 1
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

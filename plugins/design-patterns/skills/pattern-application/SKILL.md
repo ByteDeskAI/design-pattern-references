@@ -11,7 +11,7 @@ Before changing code:
 1. Confirm the actual force being addressed.
 2. Inspect the current files and tests.
 3. Look up the selected pattern with `patterns show <slug>`.
-4. Check `data/languages.json` for stack idioms.
+4. Check `patterns languages <language>` or `data/languages/<language>.md` for stack idioms.
 5. Identify the smallest boundary where the pattern can live.
 
 Implementation rules:
@@ -37,4 +37,3 @@ Recommended output when implementing:
 2. Run existing focused tests.
 3. Explain the new collaboration shape with file references.
 4. Call out follow-up refactors separately from the completed change.
-

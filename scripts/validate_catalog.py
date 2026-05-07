@@ -1,18 +1,25 @@
 #!/usr/bin/env python3
-"""Validate marketplace manifests and pattern catalog completeness."""
+"""Validate marketplace manifests and Markdown pattern catalog completeness."""
 
 from __future__ import annotations
 
 import json
 import re
+import sys
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "design-patterns"
+sys.path.insert(0, str(PLUGIN / "lib"))
+
+from pattern_catalog import load_language_profiles, load_patterns, scope_names
+
+
 KEBAB = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
-EXPECTED_GOF_COUNT = 23
-EXPECTED_EIP_COUNT = 65
+EXPECTED_PATTERN_COUNT = 88
+EXPECTED_OBJECT_DESIGN_COUNT = 23
+EXPECTED_INTEGRATION_DESIGN_COUNT = 65
 EXPECTED_LANGUAGES = {"csharp", "java", "typescript", "python", "go", "rust", "cpp"}
 EXPECTED_SKILLS = {
     "architecture-issue-scan",
@@ -23,7 +30,7 @@ EXPECTED_SKILLS = {
 }
 
 
-def load(path: Path) -> dict:
+def load_json(path: Path) -> dict:
     with path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
 
@@ -34,8 +41,8 @@ def require(condition: bool, message: str) -> None:
 
 
 def validate_manifest() -> None:
-    marketplace = load(ROOT / ".claude-plugin" / "marketplace.json")
-    plugin = load(PLUGIN / ".claude-plugin" / "plugin.json")
+    marketplace = load_json(ROOT / ".claude-plugin" / "marketplace.json")
+    plugin = load_json(PLUGIN / ".claude-plugin" / "plugin.json")
     require(KEBAB.match(marketplace["name"]) is not None, "Marketplace name must be kebab-case")
     require(KEBAB.match(plugin["name"]) is not None, "Plugin name must be kebab-case")
     require(marketplace["plugins"][0]["source"] == "./plugins/design-patterns", "Marketplace source must stay relative to marketplace root")
@@ -43,37 +50,54 @@ def validate_manifest() -> None:
     require(marketplace["plugins"][0]["version"] == plugin["version"], "Marketplace and plugin versions must match")
 
 
-def validate_catalog(name: str, expected_count: int) -> dict:
-    catalog = load(PLUGIN / "data" / name)
-    patterns = catalog["patterns"]
-    require(len(patterns) == expected_count, f"{name} expected {expected_count} patterns, found {len(patterns)}")
+def validate_markdown_only_data() -> None:
+    data_files = list((PLUGIN / "data").rglob("*"))
+    json_files = [path for path in data_files if path.suffix == ".json"]
+    require(not json_files, "Pattern data must be stored as Markdown, not JSON")
+    require((PLUGIN / "data" / "patterns").is_dir(), "Missing data/patterns Markdown directory")
+    require((PLUGIN / "data" / "languages").is_dir(), "Missing data/languages Markdown directory")
+
+
+def validate_patterns() -> None:
+    patterns = load_patterns()
+    require(len(patterns) == EXPECTED_PATTERN_COUNT, f"Expected {EXPECTED_PATTERN_COUNT} patterns, found {len(patterns)}")
+    object_count = 0
+    integration_count = 0
     seen = set()
     for pattern in patterns:
         slug = pattern["slug"]
-        require(KEBAB.match(slug) is not None, f"{name}: invalid slug {slug}")
-        require(slug not in seen, f"{name}: duplicate slug {slug}")
+        require(KEBAB.match(slug) is not None, f"Invalid slug {slug}")
+        require(slug not in seen, f"Duplicate slug {slug}")
         seen.add(slug)
-        require(pattern.get("name"), f"{name}: missing name for {slug}")
-        require(pattern.get("intent"), f"{name}: missing intent for {slug}")
-        require(pattern.get("whenToUse"), f"{name}: missing whenToUse for {slug}")
-        require(pattern.get("avoidWhen"), f"{name}: missing avoidWhen for {slug}")
-    return catalog
+        require(pattern.get("name"), f"{slug}: missing name")
+        require(pattern.get("domain"), f"{slug}: missing domain")
+        require(pattern.get("category"), f"{slug}: missing category")
+        require(pattern.get("groups"), f"{slug}: missing groups")
+        require(pattern.get("languages"), f"{slug}: missing languages")
+        require(set(pattern["languages"]) == EXPECTED_LANGUAGES, f"{slug}: incomplete language tags")
+        require(pattern.get("intent"), f"{slug}: missing Intent section")
+        require(pattern.get("whenToUse"), f"{slug}: missing When To Use bullets")
+        require(pattern.get("avoidWhen"), f"{slug}: missing Avoid When bullets")
+        if "object-design" in pattern["groups"]:
+            object_count += 1
+            require(set(pattern.get("languageNotes", {})) == EXPECTED_LANGUAGES, f"{slug}: missing language notes")
+        if "integration-design" in pattern["groups"]:
+            integration_count += 1
+        require(KEBAB.match(pattern["domain"]) is not None, f"{slug}: invalid domain")
+        for group in pattern["groups"]:
+            require(KEBAB.match(group) is not None, f"{slug}: invalid group {group}")
+    require(object_count == EXPECTED_OBJECT_DESIGN_COUNT, f"Expected {EXPECTED_OBJECT_DESIGN_COUNT} object-design patterns, found {object_count}")
+    require(integration_count == EXPECTED_INTEGRATION_DESIGN_COUNT, f"Expected {EXPECTED_INTEGRATION_DESIGN_COUNT} integration-design patterns, found {integration_count}")
+    require({"all", "object-design", "integration-design"} <= scope_names(patterns), "Missing core query scopes")
 
 
-def validate_gof_languages(gof: dict) -> None:
-    require(set(gof["languages"]) == EXPECTED_LANGUAGES, "GoF language list is incomplete")
-    for pattern in gof["patterns"]:
-        notes = pattern.get("languageNotes", {})
-        require(set(notes) == EXPECTED_LANGUAGES, f"GoF pattern {pattern['slug']} has incomplete language notes")
-
-
-def validate_language_catalog() -> None:
-    languages = load(PLUGIN / "data" / "languages.json")["languages"]
-    require(set(languages) == EXPECTED_LANGUAGES, "languages.json does not match expected language set")
+def validate_languages() -> None:
+    languages = load_language_profiles()
+    require(set(languages) == EXPECTED_LANGUAGES, "Language Markdown catalog does not match expected language set")
     for slug, language in languages.items():
         require(language.get("displayName"), f"{slug}: missing displayName")
-        require(language.get("gofIdioms"), f"{slug}: missing gofIdioms")
-        require(language.get("eipStacks"), f"{slug}: missing eipStacks")
+        require(language.get("objectDesignIdioms"), f"{slug}: missing Object Design Idioms")
+        require(language.get("integrationStacks"), f"{slug}: missing Integration Stacks")
 
 
 def validate_skills() -> None:
@@ -90,12 +114,11 @@ def validate_skills() -> None:
 
 def main() -> int:
     validate_manifest()
-    gof = validate_catalog("gof.json", EXPECTED_GOF_COUNT)
-    validate_catalog("eip.json", EXPECTED_EIP_COUNT)
-    validate_gof_languages(gof)
-    validate_language_catalog()
+    validate_markdown_only_data()
+    validate_patterns()
+    validate_languages()
     validate_skills()
-    print("Catalog validation passed.")
+    print("Markdown catalog validation passed.")
     return 0
 
 

@@ -4,7 +4,7 @@ description: Use when designing or reviewing message-driven, event-driven, async
 
 # Integration Flow Review
 
-Use this skill for Enterprise Integration Patterns and message-driven architecture.
+Use this skill for message-driven, event-driven, brokered, queue-based, stream-based, and integration architecture.
 
 Start by mapping the flow:
 
@@ -26,17 +26,16 @@ Review forces:
 
 Lookup workflow:
 
-1. Use `patterns list eip` to survey the catalog.
-2. Use `patterns show <slug>` for candidate EIP entries.
-3. Use `data/languages.json` for ecosystem-specific implementation options.
+1. Use `patterns list integration-design` to survey integration-oriented patterns.
+2. Use `patterns show <slug>` for candidate pattern entries.
+3. Use `patterns languages <language>` for ecosystem-specific implementation options.
 
 Output should include:
 
 1. Flow summary in the user's terms.
-2. Recommended EIP pattern set.
+2. Recommended integration pattern set.
 3. Failure-mode checklist.
 4. Concrete implementation sketch for the user's stack.
 5. Observability and operations hooks.
 
 Prefer a small pattern set. Most flows need a channel, a message construction choice, one routing or transformation choice, one endpoint pattern, and explicit operations patterns.
-
