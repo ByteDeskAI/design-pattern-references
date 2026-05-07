@@ -13,6 +13,13 @@ model: inherit
 
 Use this skill to move from pattern choice to a safe implementation.
 
+## References
+
+- For refactor invocation modes and output expectations, read [references/usages.md](references/usages.md).
+- For concrete refactor examples, read [references/examples.md](references/examples.md).
+- For implementation sequence, testing, and failure-mode guidance, read [references/implementation.md](references/implementation.md).
+- For catalog lookup and field usage, read [references/catalog.md](references/catalog.md).
+
 Before changing code:
 
 1. Confirm the actual force being addressed.

@@ -1,6 +1,6 @@
 {
   "name": "design-patterns",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Source-neutral advisor and Markdown reference catalog for software design patterns.",
   "author": {
     "name": "ByteDeskAI",
@@ -35,4 +35,3 @@
     ]
   }
 }
-

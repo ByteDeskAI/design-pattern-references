@@ -17,6 +17,12 @@ related:
   - publish-subscribe-channel
   - guaranteed-delivery
   - message-store
+references:
+  - skills/pattern-advisor/references/implementation.md
+  - skills/pattern-finder/references/implementation.md
+  - skills/pattern-application/references/implementation.md
+  - skills/architecture-issue-scan/references/implementation.md
+  - skills/integration-flow-review/references/implementation.md
 ---
 
 # Durable Subscriber

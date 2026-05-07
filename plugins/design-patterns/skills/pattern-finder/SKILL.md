@@ -13,6 +13,13 @@ model: inherit
 
 Use this skill to turn a problem statement into a short, practical pattern shortlist.
 
+## References
+
+- For force-discovery usage modes and output expectations, read [references/usages.md](references/usages.md).
+- For smell-to-pattern examples, read [references/examples.md](references/examples.md).
+- For force mapping and false-positive guidance, read [references/implementation.md](references/implementation.md).
+- For catalog lookup commands and shortlist rules, read [references/catalog.md](references/catalog.md).
+
 Start by identifying the forces in the user's request:
 
 - Variation point: object creation, algorithm choice, object structure, lifecycle state, collaboration, message routing, transformation, delivery, or operations.

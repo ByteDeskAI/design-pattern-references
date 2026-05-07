@@ -16,6 +16,11 @@ languages:
 related:
   - mediator
   - publish-subscribe-channel
+references:
+  - skills/pattern-advisor/references/implementation.md
+  - skills/pattern-finder/references/implementation.md
+  - skills/pattern-application/references/implementation.md
+  - skills/architecture-issue-scan/references/implementation.md
 ---
 
 # Observer

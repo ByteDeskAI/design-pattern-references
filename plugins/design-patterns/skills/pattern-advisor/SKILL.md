@@ -13,6 +13,13 @@ model: inherit
 
 Use this skill to help users select, compare, implement, or review established software design patterns.
 
+## References
+
+- For usage modes and output expectations, read [references/usages.md](references/usages.md).
+- For concrete prompt and answer examples, read [references/examples.md](references/examples.md).
+- For decision checklists and implementation guidance, read [references/implementation.md](references/implementation.md).
+- For catalog lookup commands and domain selection, read [references/catalog.md](references/catalog.md).
+
 Prefer the bundled Markdown catalogs over memory:
 
 - `data/patterns/*.md` contains source-neutral pattern entries.

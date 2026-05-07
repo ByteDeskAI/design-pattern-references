@@ -13,6 +13,13 @@ model: inherit
 
 Use this skill for message-driven, event-driven, brokered, queue-based, stream-based, and integration architecture.
 
+## References
+
+- For invocation modes and flow review expectations, read [references/usages.md](references/usages.md).
+- For common flow examples and response shapes, read [references/examples.md](references/examples.md).
+- For hardening checklists and failure modes, read [references/implementation.md](references/implementation.md).
+- For catalog lookup commands and companion patterns, read [references/catalog.md](references/catalog.md).
+
 Start by mapping the flow:
 
 - Producers, consumers, and ownership boundaries.

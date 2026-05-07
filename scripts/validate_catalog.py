@@ -28,6 +28,21 @@ EXPECTED_SKILLS = {
     "pattern-application",
     "pattern-finder",
 }
+REQUIRED_SKILL_REFERENCE_FILES = {
+    "usages.md",
+    "examples.md",
+    "implementation.md",
+    "catalog.md",
+}
+OBJECT_DESIGN_REFERENCE_SKILLS = {
+    "pattern-advisor",
+    "pattern-finder",
+    "pattern-application",
+    "architecture-issue-scan",
+}
+INTEGRATION_DESIGN_REFERENCE_SKILLS = OBJECT_DESIGN_REFERENCE_SKILLS | {
+    "integration-flow-review",
+}
 REQUIRED_SKILL_FRONTMATTER = {
     "name",
     "description",
@@ -101,6 +116,11 @@ def validate_markdown_only_data() -> None:
 
 def validate_patterns() -> None:
     patterns = load_patterns()
+    valid_reference_paths = {
+        str(path.relative_to(PLUGIN))
+        for skill in EXPECTED_SKILLS
+        for path in (PLUGIN / "skills" / skill / "references").glob("*.md")
+    }
     require(len(patterns) == EXPECTED_PATTERN_COUNT, f"Expected {EXPECTED_PATTERN_COUNT} patterns, found {len(patterns)}")
     object_count = 0
     integration_count = 0
@@ -119,11 +139,22 @@ def validate_patterns() -> None:
         require(pattern.get("intent"), f"{slug}: missing Intent section")
         require(pattern.get("whenToUse"), f"{slug}: missing When To Use bullets")
         require(pattern.get("avoidWhen"), f"{slug}: missing Avoid When bullets")
+        references = pattern.get("references", [])
+        require(references, f"{slug}: missing references frontmatter")
+        require(isinstance(references, list), f"{slug}: references must be a list")
+        for reference in references:
+            require(reference in valid_reference_paths, f"{slug}: reference does not exist: {reference}")
         if "object-design" in pattern["groups"]:
             object_count += 1
             require(set(pattern.get("languageNotes", {})) == EXPECTED_LANGUAGES, f"{slug}: missing language notes")
+            reference_skills = {reference.split("/", 2)[1] for reference in references}
+            missing = OBJECT_DESIGN_REFERENCE_SKILLS - reference_skills
+            require(not missing, f"{slug}: missing object-design reference skills {sorted(missing)}")
         if "integration-design" in pattern["groups"]:
             integration_count += 1
+            reference_skills = {reference.split("/", 2)[1] for reference in references}
+            missing = INTEGRATION_DESIGN_REFERENCE_SKILLS - reference_skills
+            require(not missing, f"{slug}: missing integration-design reference skills {sorted(missing)}")
         require(KEBAB.match(pattern["domain"]) is not None, f"{slug}: invalid domain")
         for group in pattern["groups"]:
             require(KEBAB.match(group) is not None, f"{slug}: invalid group {group}")
@@ -160,6 +191,16 @@ def validate_skills() -> None:
         require(frontmatter["disable-model-invocation"] == "false", f"{skill}: disable-model-invocation must be explicit false")
         require(frontmatter["model"] == "inherit", f"{skill}: model must inherit caller context")
         require("Bash(patterns *)" in frontmatter["allowed-tools"], f"{skill}: allowed-tools must include patterns lookup")
+        references_root = skills_root / skill / "references"
+        require(references_root.is_dir(), f"{skill}: missing references directory")
+        reference_files = {path.name for path in references_root.glob("*.md")}
+        missing_references = REQUIRED_SKILL_REFERENCE_FILES - reference_files
+        require(not missing_references, f"{skill}: missing reference files {sorted(missing_references)}")
+        for reference_file in REQUIRED_SKILL_REFERENCE_FILES:
+            reference_path = references_root / reference_file
+            reference_text = reference_path.read_text(encoding="utf-8")
+            require(f"(references/{reference_file})" in text, f"{skill}: SKILL.md must link references/{reference_file}")
+            require(len(reference_text.split()) >= 80, f"{skill}: references/{reference_file} must contain substantive guidance")
 
 
 def main() -> int:

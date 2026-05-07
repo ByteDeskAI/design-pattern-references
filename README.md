@@ -49,6 +49,7 @@ The plugin contributes:
 - `bin/patterns`: local catalog lookup helper.
 - `data/patterns/*.md`: canonical Markdown pattern entries.
 - `data/languages/*.md`: canonical Markdown language profiles.
+- `skills/*/references/{usages,examples,implementation,catalog}.md`: detailed skill documentation loaded on demand.
 
 Each skill declares fully qualified skill frontmatter: `name`, `description`, `when_to_use`, `argument-hint`, invocation controls, conservative `allowed-tools`, and `model: inherit`.
 
@@ -71,6 +72,8 @@ languages:
   - typescript
 related:
   - state
+references:
+  - skills/pattern-advisor/references/implementation.md
 ---
 
 # Strategy

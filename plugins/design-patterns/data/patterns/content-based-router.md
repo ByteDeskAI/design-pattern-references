@@ -17,6 +17,12 @@ related:
   - message-router
   - message-filter
   - recipient-list
+references:
+  - skills/pattern-advisor/references/implementation.md
+  - skills/pattern-finder/references/implementation.md
+  - skills/pattern-application/references/implementation.md
+  - skills/architecture-issue-scan/references/implementation.md
+  - skills/integration-flow-review/references/implementation.md
 ---
 
 # Content-Based Router

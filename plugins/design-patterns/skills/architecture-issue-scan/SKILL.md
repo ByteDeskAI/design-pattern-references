@@ -13,6 +13,13 @@ model: inherit
 
 Use this skill to find architecture and design issues that patterns can clarify or fix.
 
+## References
+
+- For invocation modes and output expectations, read [references/usages.md](references/usages.md).
+- For finding examples and response shapes, read [references/examples.md](references/examples.md).
+- For scan checklists, severity guidance, and recommendation rules, read [references/implementation.md](references/implementation.md).
+- For catalog lookup commands and finding-to-domain mapping, read [references/catalog.md](references/catalog.md).
+
 Scan for object-design issues:
 
 - Repeated conditionals choosing behavior or types.
