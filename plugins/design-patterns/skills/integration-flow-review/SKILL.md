@@ -1,5 +1,12 @@
 ---
-description: Use when designing or reviewing message-driven, event-driven, async workflow, broker, queue, stream, saga, or enterprise integration architecture.
+name: integration-flow-review
+description: Review message-driven, event-driven, async workflow, broker, queue, stream, saga, or integration architecture.
+when_to_use: Use when designing, reviewing, or hardening integration flows, including channels, messages, routing, transformation, endpoint behavior, retries, idempotency, ordering, correlation, observability, and operations.
+argument-hint: "[flow-or-system]"
+user-invocable: true
+disable-model-invocation: false
+allowed-tools: Read Grep Glob Bash(patterns *)
+model: inherit
 ---
 
 # Integration Flow Review

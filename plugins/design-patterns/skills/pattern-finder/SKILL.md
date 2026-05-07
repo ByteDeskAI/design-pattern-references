@@ -1,5 +1,12 @@
 ---
-description: Use when the user describes a design problem and wants help finding, comparing, or choosing reusable design patterns.
+name: pattern-finder
+description: Find and compare reusable design patterns from a problem statement.
+when_to_use: Use when the user describes a design force, smell, language constraint, integration flow, or architecture problem and needs a short pattern shortlist rather than a known pattern explanation.
+argument-hint: "[problem-statement]"
+user-invocable: true
+disable-model-invocation: false
+allowed-tools: Read Grep Glob Bash(patterns *)
+model: inherit
 ---
 
 # Pattern Finder

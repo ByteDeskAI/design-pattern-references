@@ -28,6 +28,16 @@ EXPECTED_SKILLS = {
     "pattern-application",
     "pattern-finder",
 }
+REQUIRED_SKILL_FRONTMATTER = {
+    "name",
+    "description",
+    "when_to_use",
+    "argument-hint",
+    "user-invocable",
+    "disable-model-invocation",
+    "allowed-tools",
+    "model",
+}
 
 
 def load_json(path: Path) -> dict:
@@ -38,6 +48,20 @@ def load_json(path: Path) -> dict:
 def require(condition: bool, message: str) -> None:
     if not condition:
         raise SystemExit(message)
+
+
+def parse_frontmatter(text: str, label: str) -> dict[str, str]:
+    require(text.startswith("---\n"), f"{label}: missing YAML frontmatter")
+    parts = text.split("---", 2)
+    require(len(parts) == 3, f"{label}: malformed YAML frontmatter")
+    frontmatter: dict[str, str] = {}
+    for line in parts[1].splitlines():
+        if not line.strip():
+            continue
+        require(":" in line, f"{label}: malformed frontmatter line {line!r}")
+        key, value = line.split(":", 1)
+        frontmatter[key.strip()] = value.strip().strip('"')
+    return frontmatter
 
 
 def validate_manifest() -> None:
@@ -108,8 +132,17 @@ def validate_skills() -> None:
         skill_file = skills_root / skill / "SKILL.md"
         require(skill_file.exists(), f"{skill}: missing SKILL.md")
         text = skill_file.read_text(encoding="utf-8")
-        require(text.startswith("---\n"), f"{skill}: missing YAML frontmatter")
-        require("description:" in text.split("---", 2)[1], f"{skill}: missing description frontmatter")
+        frontmatter = parse_frontmatter(text, skill)
+        missing = REQUIRED_SKILL_FRONTMATTER - set(frontmatter)
+        require(not missing, f"{skill}: missing frontmatter fields {sorted(missing)}")
+        require(frontmatter["name"] == skill, f"{skill}: name must match skill directory")
+        require(frontmatter["description"], f"{skill}: description must not be empty")
+        require(frontmatter["when_to_use"], f"{skill}: when_to_use must not be empty")
+        require(frontmatter["argument-hint"].startswith("["), f"{skill}: argument-hint should describe slash-command arguments")
+        require(frontmatter["user-invocable"] == "true", f"{skill}: user-invocable must be explicit true")
+        require(frontmatter["disable-model-invocation"] == "false", f"{skill}: disable-model-invocation must be explicit false")
+        require(frontmatter["model"] == "inherit", f"{skill}: model must inherit caller context")
+        require("Bash(patterns *)" in frontmatter["allowed-tools"], f"{skill}: allowed-tools must include patterns lookup")
 
 
 def main() -> int:
@@ -118,7 +151,7 @@ def main() -> int:
     validate_patterns()
     validate_languages()
     validate_skills()
-    print("Markdown catalog validation passed.")
+    print("Markdown catalog and skill metadata validation passed.")
     return 0
 
 

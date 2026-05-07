@@ -1,5 +1,12 @@
 ---
-description: Use when the user wants to apply a design pattern to existing code, plan a pattern-oriented refactor, or generate language-specific implementation steps.
+name: pattern-application
+description: Plan or implement a safe pattern-oriented refactor in an existing codebase.
+when_to_use: Use when a user wants to apply a selected pattern, refactor code toward a pattern, generate language-specific implementation steps, or identify the smallest safe boundary for introducing a pattern.
+argument-hint: "[pattern] [path-or-module]"
+user-invocable: true
+disable-model-invocation: false
+allowed-tools: Read Grep Glob Bash(patterns *) Bash(git status *) Bash(git diff *) Bash(git grep *)
+model: inherit
 ---
 
 # Pattern Application

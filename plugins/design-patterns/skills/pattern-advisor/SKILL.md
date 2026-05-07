@@ -1,5 +1,12 @@
 ---
-description: Use when selecting, comparing, applying, or reviewing reusable design patterns, especially when the user asks for language-specific implementation guidance.
+name: pattern-advisor
+description: Advise on selecting, comparing, applying, or reviewing reusable software design patterns.
+when_to_use: Use when a user asks which pattern fits, whether a pattern is overkill, how patterns compare, how to apply a pattern in a specific language, or how to reason about object-design and integration-design tradeoffs.
+argument-hint: "[problem-or-pattern]"
+user-invocable: true
+disable-model-invocation: false
+allowed-tools: Read Grep Glob Bash(patterns *)
+model: inherit
 ---
 
 # Pattern Advisor

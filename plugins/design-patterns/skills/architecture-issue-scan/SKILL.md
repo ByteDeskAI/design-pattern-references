@@ -1,5 +1,12 @@
 ---
-description: Use when reviewing code, architecture, PRs, diagrams, or design notes for pattern-related design issues, smells, missing seams, coupling, or integration risks.
+name: architecture-issue-scan
+description: Find source-neutral design-pattern issues in code, architecture docs, PRs, diagrams, or design notes.
+when_to_use: Use when reviewing architecture or code for coupling, missing seams, lifecycle-state spread, message-flow risks, pattern misfit, over-patterning, or concrete refactoring opportunities.
+argument-hint: "[path-or-description]"
+user-invocable: true
+disable-model-invocation: false
+allowed-tools: Read Grep Glob Bash(patterns *)
+model: inherit
 ---
 
 # Architecture Issue Scan
@@ -41,4 +48,3 @@ For review-style output, lead with findings ordered by severity. For each findin
 - Test or observability check that would prove the fix.
 
 Avoid naming patterns as decoration. If a pattern does not remove concrete risk, say no pattern is needed yet.
-

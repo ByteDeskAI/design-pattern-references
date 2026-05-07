@@ -42,6 +42,8 @@ The plugin contributes:
 - `data/patterns/*.md`: canonical Markdown pattern entries.
 - `data/languages/*.md`: canonical Markdown language profiles.
 
+Each skill declares fully qualified Claude Code frontmatter: `name`, `description`, `when_to_use`, `argument-hint`, invocation controls, conservative `allowed-tools`, and `model: inherit`.
+
 ## Catalog Model
 
 The catalog is intentionally source-neutral. Patterns are organized by domain, category, group, and language applicability rather than by origin. New patterns can be added from any useful tradition, codebase, architecture review, or language ecosystem by adding a Markdown file under `plugins/design-patterns/data/patterns`.
