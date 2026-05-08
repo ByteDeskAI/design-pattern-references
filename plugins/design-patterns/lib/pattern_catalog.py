@@ -42,6 +42,31 @@ LANGUAGE_SECTIONS = {
     "testingGuidance": "Testing Guidance",
     "operationalGuidance": "Operational Guidance",
 }
+FRAMEWORK_SECTIONS = {
+    "bestFor": "Best For",
+    "patternMapping": "Pattern Mapping",
+    "implementationNotes": "Implementation Notes",
+    "testingGuidance": "Testing Guidance",
+    "operationalGuidance": "Operational Guidance",
+}
+RECIPE_SECTIONS = {
+    "goal": "Goal",
+    "preconditions": "Preconditions",
+    "steps": "Steps",
+    "tests": "Tests",
+    "rollback": "Rollback",
+}
+SCORECARD_SECTIONS = {
+    "intent": "Intent",
+    "scale": "Scale",
+    "criteriaNotes": "Criteria",
+    "outputContract": "Output Contract",
+    "antiPatterns": "Anti-Patterns",
+}
+SNIPPET_SECTIONS = {
+    "use": "Use",
+    "tests": "Tests",
+}
 
 
 def _parse_frontmatter(text: str, path: Path) -> tuple[dict[str, Any], str]:
@@ -126,7 +151,7 @@ def _load_markdown(path: Path) -> tuple[dict[str, Any], str]:
 def _apply_sections(entry: dict[str, Any], body: str, sections: dict[str, str]) -> dict[str, Any]:
     for field, heading in sections.items():
         section = _section(body, heading)
-        if heading in {"Intent", "Symptom", "Why It Matters", "False Positives"}:
+        if heading in {"Intent", "Symptom", "Why It Matters", "False Positives", "Goal", "Output Contract"}:
             entry[field] = section
         else:
             entry[field] = _bullets(section)
@@ -171,8 +196,84 @@ def load_smells(data_root: Path = DATA_ROOT) -> list[dict[str, Any]]:
     return smells
 
 
+def load_frameworks(data_root: Path = DATA_ROOT) -> list[dict[str, Any]]:
+    frameworks: list[dict[str, Any]] = []
+    for path in sorted((data_root / "frameworks").glob("*.md")):
+        meta, body = _load_markdown(path)
+        framework = dict(meta)
+        framework["kind"] = "framework"
+        _apply_sections(framework, body, FRAMEWORK_SECTIONS)
+        framework["path"] = str(path.relative_to(data_root.parent))
+        frameworks.append(framework)
+    return frameworks
+
+
+def load_recipes(data_root: Path = DATA_ROOT) -> list[dict[str, Any]]:
+    recipes: list[dict[str, Any]] = []
+    for path in sorted((data_root / "recipes").glob("*.md")):
+        meta, body = _load_markdown(path)
+        recipe = dict(meta)
+        recipe["kind"] = "recipe"
+        _apply_sections(recipe, body, RECIPE_SECTIONS)
+        recipe["path"] = str(path.relative_to(data_root.parent))
+        recipes.append(recipe)
+    return recipes
+
+
+def load_scorecards(data_root: Path = DATA_ROOT) -> list[dict[str, Any]]:
+    scorecards: list[dict[str, Any]] = []
+    for path in sorted((data_root / "scorecards").glob("*.md")):
+        meta, body = _load_markdown(path)
+        scorecard = dict(meta)
+        scorecard["kind"] = "scorecard"
+        _apply_sections(scorecard, body, SCORECARD_SECTIONS)
+        scorecard["path"] = str(path.relative_to(data_root.parent))
+        scorecards.append(scorecard)
+    return scorecards
+
+
+def load_snippets(data_root: Path = DATA_ROOT) -> list[dict[str, Any]]:
+    snippets: list[dict[str, Any]] = []
+    snippets_root = data_root / "snippets"
+    if not snippets_root.exists():
+        return snippets
+    for path in sorted(snippets_root.rglob("*.md")):
+        meta, body = _load_markdown(path)
+        snippet = dict(meta)
+        snippet["kind"] = "snippet"
+        _apply_sections(snippet, body, SNIPPET_SECTIONS)
+        snippet["example"] = _section(body, "Example")
+        snippet["path"] = str(path.relative_to(data_root.parent))
+        snippets.append(snippet)
+    return snippets
+
+
+def load_taxonomy(data_root: Path = DATA_ROOT) -> dict[str, dict[str, Any]]:
+    taxonomy_root = data_root / "taxonomy"
+    taxonomy: dict[str, dict[str, Any]] = {}
+    if not taxonomy_root.exists():
+        return taxonomy
+    for path in sorted(taxonomy_root.glob("*.md")):
+        meta, body = _load_markdown(path)
+        groups: dict[str, list[str]] = {}
+        headings = list(re.finditer(r"^## (.+?)\s*$", body, re.MULTILINE))
+        for index, heading in enumerate(headings):
+            start = heading.end()
+            end = headings[index + 1].start() if index + 1 < len(headings) else len(body)
+            groups[heading.group(1).strip()] = _bullets(body[start:end].strip())
+        taxonomy[meta["slug"]] = {**meta, "groups": groups, "path": str(path.relative_to(data_root.parent))}
+    return taxonomy
+
+
 def load_catalog(data_root: Path = DATA_ROOT) -> list[dict[str, Any]]:
-    return [*load_patterns(data_root), *load_playbooks(data_root), *load_smells(data_root)]
+    return [
+        *load_patterns(data_root),
+        *load_playbooks(data_root),
+        *load_smells(data_root),
+        *load_frameworks(data_root),
+        *load_recipes(data_root),
+        *load_scorecards(data_root),
+    ]
 
 
 def load_language_profiles(data_root: Path = DATA_ROOT) -> dict[str, dict[str, Any]]:

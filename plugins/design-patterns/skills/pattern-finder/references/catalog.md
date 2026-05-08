@@ -9,6 +9,12 @@ patterns search "router" --scope integration-design
 patterns recommend "duplicate delivery repeats side effects"
 patterns smells naive-exactly-once
 patterns playbooks event-fanout
+patterns frameworks python-celery-faststream
+patterns recipes idempotent-receiver-recipe
+patterns why "provider selection leaks into domain code"
+patterns graph --query "what implements idempotent receiver"
+patterns simulate "provider selection leaks into domain code"
+patterns snippets strategy --language csharp
 patterns list behavior-and-collaboration --language python
 patterns list message-routing
 patterns show idempotent-receiver
@@ -23,6 +29,7 @@ patterns show idempotent-receiver
 - Use `playbooks` when the answer needs a pattern combination.
 - Use `smells` when the prompt describes a risk instead of a desired pattern.
 - Use language profiles to prevent class-heavy recommendations in function-first languages.
+- Use `patterns graph --query` for relationship questions and `patterns simulate` when the shortlist needs scorecard-backed ranking.
 
 ## Pattern File Fields
 

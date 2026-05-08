@@ -11,6 +11,15 @@ patterns recommend "duplicate delivery repeats side effects" --scope integration
 patterns compare strategy state template-method
 patterns playbooks event-fanout
 patterns smells naive-exactly-once
+patterns frameworks dotnet-masstransit
+patterns recipes strategy-refactor
+patterns scorecards standard-architecture-decision
+patterns explain strategy
+patterns why "provider selection leaks into domain code"
+patterns context ./src --query "provider selection leaks into domain code" --language csharp
+patterns simulate "duplicate delivery repeats side effects" --language python
+patterns graph --query "what mitigates naive exactly once"
+patterns snippets idempotent-receiver --language python
 patterns show strategy --language csharp
 patterns languages go
 ```
@@ -32,5 +41,7 @@ Pattern files provide:
 - decision metadata for quality attributes, testing, observability, and failure modes;
 - language notes for object-design patterns;
 - reference links to skill documentation.
+- language-specific snippets for implementation examples.
+- taxonomy-backed force and synonym matching for smarter recommendation ranking.
 
 Prefer direct pattern files over memory when a user asks for a precise catalog-backed recommendation.

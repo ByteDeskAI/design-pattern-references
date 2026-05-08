@@ -13,7 +13,18 @@ ROOT = Path(__file__).resolve().parents[1]
 PLUGIN = ROOT / "plugins" / "design-patterns"
 sys.path.insert(0, str(PLUGIN / "lib"))
 
-from pattern_catalog import load_language_profiles, load_patterns, load_playbooks, load_smells, scope_names
+from pattern_catalog import (
+    load_frameworks,
+    load_language_profiles,
+    load_patterns,
+    load_playbooks,
+    load_recipes,
+    load_scorecards,
+    load_smells,
+    load_snippets,
+    load_taxonomy,
+    scope_names,
+)
 
 
 KEBAB = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -22,7 +33,36 @@ MIN_OBJECT_DESIGN_COUNT = 23
 MIN_INTEGRATION_DESIGN_COUNT = 65
 MIN_PLAYBOOK_COUNT = 8
 MIN_SMELL_COUNT = 10
+MIN_FRAMEWORK_COUNT = 6
+MIN_RECIPE_COUNT = 6
+MIN_SCORECARD_COUNT = 1
+MIN_SNIPPET_COUNT = 2
 EXPECTED_LANGUAGES = {"csharp", "java", "typescript", "python", "go", "rust", "cpp"}
+EXPECTED_CLASSIC_OBJECT_DESIGN_PATTERNS = {
+    "abstract-factory",
+    "adapter",
+    "bridge",
+    "builder",
+    "chain-of-responsibility",
+    "command",
+    "composite",
+    "decorator",
+    "facade",
+    "factory-method",
+    "flyweight",
+    "interpreter",
+    "iterator",
+    "mediator",
+    "memento",
+    "observer",
+    "prototype",
+    "proxy",
+    "singleton",
+    "state",
+    "strategy",
+    "template-method",
+    "visitor",
+}
 EXPECTED_SKILLS = {
     "architecture-decision",
     "architecture-issue-scan",
@@ -107,7 +147,27 @@ def validate_codex_manifest() -> None:
     require(entry["policy"]["authentication"] in {"ON_INSTALL", "ON_USE"}, "Codex authentication policy is invalid")
     require(entry.get("category"), "Codex marketplace entry must include category")
     require(plugin["skills"] == "./skills/", "Codex plugin must expose the shared skills directory")
+    require(plugin["mcpServers"] == "./.mcp.json", "Codex plugin must expose the shared MCP server config")
     require(plugin["version"] == load_json(PLUGIN / ".claude-plugin" / "plugin.json")["version"], "Claude and Codex plugin versions must match")
+
+
+def validate_mcp_metadata() -> None:
+    plugin_config = load_json(PLUGIN / ".mcp.json")
+    project_config = load_json(ROOT / ".mcp.json")
+    plugin_servers = plugin_config.get("mcpServers", {})
+    project_servers = project_config.get("mcpServers", {})
+    require("design-patterns" in plugin_servers, "Plugin .mcp.json must expose design-patterns server")
+    require("design-patterns" in project_servers, "Project .mcp.json must expose design-patterns server")
+    plugin_server = plugin_servers["design-patterns"]
+    project_server = project_servers["design-patterns"]
+    require(plugin_server.get("type") == "stdio", "Plugin MCP server must be stdio")
+    require(project_server.get("type") == "stdio", "Project MCP server must be stdio")
+    require(plugin_server.get("command") == "./bin/patterns", "Plugin MCP server command must use the bundled patterns CLI")
+    require(project_server.get("command") == "./plugins/design-patterns/bin/patterns", "Project MCP server command must use the repo-local patterns CLI")
+    require(plugin_server.get("args") == ["mcp"], "Plugin MCP server args must run the mcp subcommand")
+    require(project_server.get("args") == ["mcp"], "Project MCP server args must run the mcp subcommand")
+    require(plugin_server.get("cwd") == ".", "Plugin MCP server cwd must be plugin root")
+    require(project_server.get("cwd") == ".", "Project MCP server cwd must be the repo root")
 
 
 def validate_markdown_only_data() -> None:
@@ -118,6 +178,11 @@ def validate_markdown_only_data() -> None:
     require((PLUGIN / "data" / "languages").is_dir(), "Missing data/languages Markdown directory")
     require((PLUGIN / "data" / "playbooks").is_dir(), "Missing data/playbooks Markdown directory")
     require((PLUGIN / "data" / "smells").is_dir(), "Missing data/smells Markdown directory")
+    require((PLUGIN / "data" / "frameworks").is_dir(), "Missing data/frameworks Markdown directory")
+    require((PLUGIN / "data" / "recipes").is_dir(), "Missing data/recipes Markdown directory")
+    require((PLUGIN / "data" / "scorecards").is_dir(), "Missing data/scorecards Markdown directory")
+    require((PLUGIN / "data" / "snippets").is_dir(), "Missing data/snippets Markdown directory")
+    require((PLUGIN / "data" / "taxonomy").is_dir(), "Missing data/taxonomy Markdown directory")
 
 
 def validate_references(references: list[str], valid_reference_paths: set[str], label: str) -> None:
@@ -201,6 +266,11 @@ def validate_patterns() -> None:
             require(KEBAB.match(group) is not None, f"{slug}: invalid group {group}")
     require(object_count >= MIN_OBJECT_DESIGN_COUNT, f"Expected at least {MIN_OBJECT_DESIGN_COUNT} object-design patterns, found {object_count}")
     require(integration_count >= MIN_INTEGRATION_DESIGN_COUNT, f"Expected at least {MIN_INTEGRATION_DESIGN_COUNT} integration-design patterns, found {integration_count}")
+    object_slugs = {pattern["slug"] for pattern in patterns if "object-design" in pattern.get("groups", [])}
+    missing_classic = EXPECTED_CLASSIC_OBJECT_DESIGN_PATTERNS - object_slugs
+    require(not missing_classic, f"Missing classic object-design patterns: {sorted(missing_classic)}")
+    missing_python = [pattern["slug"] for pattern in patterns if "python" not in pattern.get("languages", [])]
+    require(not missing_python, f"Patterns missing python language coverage: {missing_python}")
     require({"all", "object-design", "integration-design"} <= scope_names(patterns), "Missing core query scopes")
 
 
@@ -245,6 +315,91 @@ def validate_playbooks_and_smells() -> None:
         for section in ("symptom", "whyItMatters", "patternResponses", "falsePositives", "checks"):
             require(smell.get(section), f"{slug}: missing {section} section")
         validate_references(smell.get("references", []), valid_reference_paths, slug)
+
+
+def validate_frameworks_recipes_and_scorecards() -> None:
+    patterns = load_patterns()
+    smells = load_smells()
+    frameworks = load_frameworks()
+    recipes = load_recipes()
+    scorecards = load_scorecards()
+    pattern_slugs = {pattern["slug"] for pattern in patterns}
+    smell_slugs = {smell["slug"] for smell in smells}
+    valid_reference_paths = {
+        str(path.relative_to(PLUGIN))
+        for skill in EXPECTED_SKILLS
+        for path in (PLUGIN / "skills" / skill / "references").glob("*.md")
+    }
+    require(len(frameworks) >= MIN_FRAMEWORK_COUNT, f"Expected at least {MIN_FRAMEWORK_COUNT} framework packs, found {len(frameworks)}")
+    require(len(recipes) >= MIN_RECIPE_COUNT, f"Expected at least {MIN_RECIPE_COUNT} recipes, found {len(recipes)}")
+    require(len(scorecards) >= MIN_SCORECARD_COUNT, f"Expected at least {MIN_SCORECARD_COUNT} scorecards, found {len(scorecards)}")
+    seen = set()
+    for framework in frameworks:
+        slug = framework["slug"]
+        require(KEBAB.match(slug) is not None, f"Invalid framework slug {slug}")
+        require(slug not in seen, f"Duplicate framework slug {slug}")
+        seen.add(slug)
+        require("framework-implementation" in framework.get("groups", []), f"{slug}: missing framework-implementation group")
+        require(set(framework.get("languages", [])) <= EXPECTED_LANGUAGES, f"{slug}: unknown framework language tag")
+        for pattern in framework.get("patterns", []):
+            require(pattern in pattern_slugs, f"{slug}: framework pattern target does not exist: {pattern}")
+        for section in ("bestFor", "patternMapping", "implementationNotes", "testingGuidance", "operationalGuidance"):
+            require(framework.get(section), f"{slug}: missing {section} section")
+        validate_references(framework.get("references", []), valid_reference_paths, slug)
+    seen.clear()
+    for recipe in recipes:
+        slug = recipe["slug"]
+        require(KEBAB.match(slug) is not None, f"Invalid recipe slug {slug}")
+        require(slug not in seen, f"Duplicate recipe slug {slug}")
+        seen.add(slug)
+        require("pattern-recipe" in recipe.get("groups", []), f"{slug}: missing pattern-recipe group")
+        for pattern in recipe.get("patterns", []):
+            require(pattern in pattern_slugs, f"{slug}: recipe pattern target does not exist: {pattern}")
+        for smell in recipe.get("smells", []):
+            require(smell in smell_slugs, f"{slug}: recipe smell target does not exist: {smell}")
+        for section in ("goal", "preconditions", "steps", "tests", "rollback"):
+            require(recipe.get(section), f"{slug}: missing {section} section")
+        validate_references(recipe.get("references", []), valid_reference_paths, slug)
+    seen.clear()
+    for scorecard in scorecards:
+        slug = scorecard["slug"]
+        require(KEBAB.match(slug) is not None, f"Invalid scorecard slug {slug}")
+        require(slug not in seen, f"Duplicate scorecard slug {slug}")
+        seen.add(slug)
+        require("architecture-scorecard" in scorecard.get("groups", []), f"{slug}: missing architecture-scorecard group")
+        require(scorecard.get("criteria"), f"{slug}: missing criteria frontmatter")
+        for section in ("intent", "scale", "criteriaNotes", "outputContract", "antiPatterns"):
+            require(scorecard.get(section), f"{slug}: missing {section} section")
+        validate_references(scorecard.get("references", []), valid_reference_paths, slug)
+
+
+def validate_taxonomy_and_snippets() -> None:
+    taxonomy = load_taxonomy()
+    snippets = load_snippets()
+    patterns = load_patterns()
+    pattern_slugs = {pattern["slug"] for pattern in patterns}
+    require("architecture-forces" in taxonomy, "Missing architecture-forces taxonomy")
+    require("architecture-synonyms" in taxonomy, "Missing architecture-synonyms taxonomy")
+    for slug, entry in taxonomy.items():
+        require(KEBAB.match(slug) is not None, f"Invalid taxonomy slug {slug}")
+        require(entry.get("groups"), f"{slug}: taxonomy must include grouped headings")
+        for group_name, values in entry["groups"].items():
+            require(group_name.strip(), f"{slug}: taxonomy group name is empty")
+            require(values, f"{slug}: taxonomy group {group_name} is empty")
+    require(len(snippets) >= MIN_SNIPPET_COUNT, f"Expected at least {MIN_SNIPPET_COUNT} snippets, found {len(snippets)}")
+    seen = set()
+    for snippet in snippets:
+        slug = snippet["slug"]
+        require(KEBAB.match(slug) is not None, f"Invalid snippet slug {slug}")
+        require(slug not in seen, f"Duplicate snippet slug {slug}")
+        seen.add(slug)
+        require(snippet.get("language") in EXPECTED_LANGUAGES, f"{slug}: unknown snippet language")
+        require(snippet.get("patterns"), f"{slug}: snippet must reference patterns")
+        for pattern in snippet.get("patterns", []):
+            require(pattern in pattern_slugs, f"{slug}: snippet pattern target does not exist: {pattern}")
+        require(snippet.get("use"), f"{slug}: missing Use section")
+        require(snippet.get("example"), f"{slug}: missing Example section")
+        require(snippet.get("tests"), f"{slug}: missing Tests section")
 
 
 def validate_languages() -> None:
@@ -307,18 +462,72 @@ def validate_evals() -> None:
         require(item.get("prompt"), f"evals/evals.json: eval {eval_id} missing prompt")
         require(item.get("expected_output"), f"evals/evals.json: eval {eval_id} missing expected_output")
         require(isinstance(item.get("files", []), list), f"evals/evals.json: eval {eval_id} files must be a list")
+        golden_output = item.get("golden_output")
+        require(golden_output, f"evals/evals.json: eval {eval_id} missing golden_output")
+        require((ROOT / golden_output).exists(), f"evals/evals.json: eval {eval_id} golden_output does not exist")
+        assertions = item.get("assertions", [])
+        require(assertions, f"evals/evals.json: eval {eval_id} missing assertions")
+        for assertion in assertions:
+            require(
+                assertion.get("type")
+                in {"contains_sections", "contains_terms", "command_json_top_slug", "command_json_contains", "command_json_count_at_most"},
+                f"evals/evals.json: eval {eval_id} invalid assertion type",
+            )
+
+
+def validate_docs_site() -> None:
+    site = PLUGIN / "site"
+    require((ROOT / "docs" / "catalog-authoring.md").exists(), "Missing docs/catalog-authoring.md")
+    require((ROOT / "docs" / "classic-object-pattern-coverage.md").exists(), "Missing docs/classic-object-pattern-coverage.md")
+    require((site / "index.html").exists(), "Missing generated plugin site/index.html")
+    require((site / "search-index.json").exists(), "Missing generated plugin site/search-index.json")
+    index = load_json(site / "search-index.json")
+    require(len(index) >= MIN_PATTERN_COUNT + MIN_PLAYBOOK_COUNT + MIN_SMELL_COUNT, "Generated site search index is incomplete")
+
+
+def validate_plugin_workbench() -> None:
+    workbench = PLUGIN / "lib" / "pattern_workbench.py"
+    cli = PLUGIN / "bin" / "patterns"
+    require(workbench.exists(), "Missing plugin dynamic workbench implementation")
+    require(cli.exists(), "Missing plugin patterns CLI")
+    workbench_text = workbench.read_text(encoding="utf-8")
+    cli_text = cli.read_text(encoding="utf-8")
+    required_modules = {
+        "pattern_intelligence.py",
+        "pattern_scanner.py",
+        "pattern_context.py",
+        "pattern_graph.py",
+        "pattern_mcp_server.py",
+        "workbench_analysis.py",
+        "workbench_api.py",
+        "workbench_assets.py",
+        "workbench_views.py",
+    }
+    present_modules = {path.name for path in (PLUGIN / "lib").glob("*.py")}
+    missing_modules = required_modules - present_modules
+    require(not missing_modules, f"Plugin intelligence/workbench modules missing: {sorted(missing_modules)}")
+    require("run_server" in workbench_text, "Plugin workbench must expose run_server")
+    for command in ("serve", "context", "simulate", "migrate", "snippets", "mcp", "graph"):
+        require(f'"{command}"' in cli_text, f"Plugin CLI must expose {command} subcommand")
+    require("pattern_workbench" in cli_text, "Plugin CLI serve command must use the plugin workbench module")
+    require("serve_stdio" in cli_text, "Plugin CLI must expose the MCP stdio server")
 
 
 def main() -> int:
     validate_claude_manifest()
     validate_codex_manifest()
+    validate_mcp_metadata()
     validate_markdown_only_data()
     validate_patterns()
     validate_playbooks_and_smells()
+    validate_frameworks_recipes_and_scorecards()
+    validate_taxonomy_and_snippets()
     validate_languages()
     validate_skills()
     validate_evals()
-    print("Marketplace metadata, Markdown catalog, playbooks, smells, evals, and skill metadata validation passed.")
+    validate_docs_site()
+    validate_plugin_workbench()
+    print("Marketplace metadata, Markdown catalog, taxonomy, snippets, playbooks, smells, frameworks, recipes, scorecards, evals, docs, workbench, and skill metadata validation passed.")
     return 0
 
 

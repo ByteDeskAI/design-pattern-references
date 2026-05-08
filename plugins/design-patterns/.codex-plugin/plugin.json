@@ -1,7 +1,7 @@
 {
   "name": "design-patterns",
-  "version": "0.5.0",
-  "description": "Source-neutral advisor and Markdown reference catalog for software design patterns.",
+  "version": "0.8.0",
+  "description": "Source-neutral advisor, Markdown reference catalog, MCP tooling, and dynamic workbench for software design patterns.",
   "author": {
     "name": "ByteDeskAI",
     "url": "https://github.com/ByteDeskAI"
@@ -17,10 +17,11 @@
     "refactoring"
   ],
   "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Design Patterns",
     "shortDescription": "Pattern advice, architecture review, and refactoring guidance.",
-    "longDescription": "A source-neutral Markdown catalog and skill bundle for finding, reviewing, deciding, and applying reusable software design patterns across object design, integration design, architecture smells, playbooks, and language-specific implementation idioms.",
+    "longDescription": "A source-neutral Markdown catalog and skill bundle for finding, reviewing, deciding, scanning, scoring, documenting, exploring, and applying reusable software design patterns across object design, integration design, architecture smells, playbooks, recipes, framework packs, language-specific implementation idioms, snippets, context packs, migration plans, decision simulations, graph intelligence, MCP tooling, and a dynamic Python-backed catalog workbench.",
     "developerName": "ByteDeskAI",
     "category": "Engineering",
     "capabilities": [
@@ -32,7 +33,12 @@
       "Find the right pattern for this design problem.",
       "Review this architecture for pattern issues.",
       "Draft an architecture decision using pattern tradeoffs.",
-      "Plan this module toward a cleaner pattern."
+      "Scan this repository for pattern-relevant architecture smells.",
+      "Serve the dynamic design pattern workbench for catalog exploration.",
+      "Generate an implementation brief from selected pattern candidates.",
+      "Plan this module toward a cleaner pattern.",
+      "Build a context pack from code evidence and pattern references.",
+      "Run the design-pattern MCP server for tool integrations."
     ]
   }
 }

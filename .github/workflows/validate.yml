@@ -14,13 +14,28 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+      - name: Generate static catalog site
+        run: python3 scripts/generate_site.py
       - name: Validate catalog and marketplace metadata
         run: python3 scripts/validate_catalog.py
       - name: Run unit tests
         run: python3 -m unittest discover
+      - name: Run golden eval checks
+        run: python3 scripts/run_evals.py
       - name: Smoke test CLI
         run: |
           plugins/design-patterns/bin/patterns recommend "duplicate delivery repeated side effects" --json
           plugins/design-patterns/bin/patterns compare strategy state --json
           plugins/design-patterns/bin/patterns playbooks event-fanout --json
           plugins/design-patterns/bin/patterns smells naive-exactly-once --json
+          plugins/design-patterns/bin/patterns adr "duplicate delivery repeated side effects" --json
+          plugins/design-patterns/bin/patterns graph --format json
+          plugins/design-patterns/bin/patterns frameworks dotnet-masstransit --json
+          plugins/design-patterns/bin/patterns recipes strategy-refactor --json
+          plugins/design-patterns/bin/patterns scorecards standard-architecture-decision --json
+          plugins/design-patterns/bin/patterns graph --query "what mitigates naive exactly once" --json
+          plugins/design-patterns/bin/patterns snippets idempotent-receiver --language python --json
+          plugins/design-patterns/bin/patterns simulate "duplicate delivery repeats side effects" --json
+          plugins/design-patterns/bin/patterns migrate provider-switch-sprawl --to bridge --json
+          plugins/design-patterns/bin/patterns context plugins/design-patterns/data/playbooks/event-fanout.md --query "duplicate delivery" --language python --json
+          plugins/design-patterns/bin/patterns serve --help

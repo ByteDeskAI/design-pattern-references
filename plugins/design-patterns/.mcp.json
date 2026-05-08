@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "design-patterns": {
+      "type": "stdio",
+      "command": "./bin/patterns",
+      "args": ["mcp"],
+      "cwd": "."
+    }
+  }
+}

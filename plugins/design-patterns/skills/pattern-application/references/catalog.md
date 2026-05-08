@@ -9,7 +9,12 @@ patterns show idempotent-receiver
 patterns search "duplicate" --scope integration-design
 patterns playbooks variation-point-refactor
 patterns smells conditional-sprawl
+patterns recipes strategy-refactor
+patterns frameworks typescript-nestjs-kafkajs
 patterns compare strategy template-method state
+patterns migrate provider-switch-sprawl --to bridge
+patterns snippets strategy --language csharp
+patterns context ./src --query "pricing branches vary by customer and market" --language typescript
 patterns languages rust
 ```
 
@@ -24,6 +29,7 @@ patterns languages rust
 - Use playbooks when a refactor needs several patterns in sequence.
 - Use smells to keep the implementation tied to the risk being removed.
 - Use `references` to load deeper skill-specific implementation guidance.
+- Use recipes, `patterns migrate`, and snippets to turn the pattern recommendation into safe refactor steps.
 
 ## Minimum Implementation Bar
 

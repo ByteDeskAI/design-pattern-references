@@ -10,6 +10,13 @@ patterns recommend "messages can be delivered twice and consumers write side eff
 patterns compare idempotent-receiver transactional-client dead-letter-channel
 patterns playbooks event-fanout
 patterns smells naive-exactly-once
+patterns frameworks dotnet-masstransit
+patterns recipes idempotent-receiver-recipe
+patterns scorecards standard-architecture-decision
+patterns adr "duplicate delivery repeats side effects"
+patterns simulate "duplicate delivery repeats side effects" --language csharp
+patterns graph --format mermaid
+patterns graph --query "what mitigates naive exactly once"
 patterns show strategy --language typescript
 patterns show content-based-router --language csharp
 ```
@@ -24,4 +31,4 @@ patterns show content-based-router --language csharp
 - Routing autonomy -> `message-router`, `content-based-router`, `recipient-list`, or `routing-slip`.
 - Support visibility -> `correlation-identifier`, `message-history`, `wire-tap`, `message-store`, or `control-bus`.
 
-Use `patterns show <slug> --json` when you need machine-readable references and related patterns. Use the Markdown files directly when you need the full body text, examples, or implementation notes.
+Use `patterns simulate` when alternatives need scorecard-backed comparison. Use `patterns show <slug> --json` when you need machine-readable references and related patterns. Use the Markdown files directly when you need the full body text, examples, snippets, or implementation notes.
