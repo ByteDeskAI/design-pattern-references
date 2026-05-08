@@ -537,12 +537,16 @@ def validate_agents() -> None:
 def validate_mcp_tool_argument_helpers() -> None:
     tools = tool_definitions()
     require(tools, "MCP server must expose tool definitions")
+    tool_map = {tool.get("name"): tool for tool in tools}
+    require("pack" in tool_map["patterns_context"]["inputSchema"]["properties"], "patterns_context must expose inferrable pack")
+    require("query" in tool_map["patterns_snippets"]["inputSchema"]["properties"], "patterns_snippets must expose query-based pattern inference")
     for tool in tools:
         name = tool.get("name", "<unknown>")
         schema = tool.get("inputSchema", {})
         properties = schema.get("properties", {})
         require(tool.get("description"), f"{name}: MCP tool description must not be empty")
         require(isinstance(properties, dict), f"{name}: MCP input properties must be an object")
+        require(not schema.get("required"), f"{name}: MCP tool should return missing-argument detail instead of schema-required blocking")
         for argument_name, argument_schema in properties.items():
             label = f"{name}.{argument_name}"
             require(isinstance(argument_schema, dict), f"{label}: MCP argument schema must be an object")

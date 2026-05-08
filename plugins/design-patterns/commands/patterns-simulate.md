@@ -17,14 +17,15 @@ Argument mapping:
 
 - First quoted or unflagged text: `query` required.
 - `--language <language>`: optional implementation language. If omitted, infer it from codebase files, path hints, and prompt terms.
-- `--risk <risk>`: scorecard emphasis.
-- `--limit <n>`: number of options to score.
+- `--risk <risk>`: optional scorecard emphasis. If omitted, infer `operability`, `conservative`, `delivery`, or `balanced` from the request.
+- `--limit <n>`: number of options to score, default `5`.
 
 Inference behavior:
 
 - Do not ask for `--language` just because it is missing.
 - Infer language and scope context from the codebase and decision text before scoring.
 - If evidence is ambiguous, score without a language filter and keep scope as `all`.
+- If `query` is missing, return structured missing-argument detail because the decision cannot be safely inferred.
 
 Examples:
 

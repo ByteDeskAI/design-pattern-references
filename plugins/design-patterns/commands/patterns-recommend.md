@@ -18,8 +18,8 @@ Argument mapping:
 - First quoted or unflagged text: `query` required.
 - `--language <language>`: optional language filter. If omitted, infer it from codebase files, path hints, and prompt terms.
 - `--scope <scope>`: optional catalog scope. If omitted, infer `object-design`, `integration-design`, a catalog domain, or `all` from codebase and prompt context.
-- `--risk <risk>`: decision emphasis such as `balanced`, `operability`, or `simplicity`.
-- `--limit <n>`: maximum recommendations.
+- `--risk <risk>`: optional decision emphasis. If omitted, infer `operability`, `conservative`, `delivery`, or `balanced` from the request.
+- `--limit <n>`: maximum recommendations, default `8`.
 
 Inference behavior:
 
@@ -27,6 +27,7 @@ Inference behavior:
 - Prefer explicit arguments when supplied.
 - Otherwise infer from nearby project files, stack markers, path names, and the problem statement.
 - If evidence is ambiguous, use `all` for scope and omit the language filter.
+- If `query` is missing, return structured missing-argument detail because the design force is not safely inferable from codebase context alone.
 
 Examples:
 

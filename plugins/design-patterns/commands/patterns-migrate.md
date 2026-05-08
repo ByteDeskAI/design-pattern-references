@@ -15,8 +15,8 @@ Help behavior:
 
 Argument mapping:
 
-- First quoted or unflagged text: `source` required.
-- `--to <target-pattern>`: `target` required.
+- First quoted or unflagged text: `source` required unless `--query` supplies the current shape.
+- `--to <target-pattern>`: `target` required unless the request names exactly one catalog pattern to migrate toward.
 - `--language <language>`: optional implementation language. If omitted, infer it from codebase files, path hints, and prompt terms.
 - `--query <context>`: extra project context.
 
@@ -25,6 +25,7 @@ Inference behavior:
 - Do not ask for `--language` just because it is missing.
 - Infer language and scope context from the source, target, query, and nearby project files.
 - If evidence is ambiguous, plan without a language filter and keep scope as `all`.
+- If `source` or `target` is not supplied and cannot be inferred, return structured missing-argument detail.
 
 Examples:
 

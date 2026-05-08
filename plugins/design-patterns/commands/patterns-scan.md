@@ -1,6 +1,6 @@
 ---
 description: Scan a file or directory for pattern-relevant architecture smells
-argument-hint: "help | <path> [--min-confidence <0-1>] [--pack <pack>] [--include-docs] [--include-generated]"
+argument-hint: "help | [path] [--min-confidence <0-1>] [--pack <pack>] [--include-docs] [--include-generated]"
 ---
 
 # Patterns Scan
@@ -15,17 +15,19 @@ Help behavior:
 
 Argument mapping:
 
-- First positional value: `path` required.
-- `--min-confidence <0-1>`: filter weak findings.
-- `--pack <pack>`: smell rule pack, default `all`.
-- `--include-docs`: include documentation files in the scan.
-- `--include-generated`: include generated files.
+- First positional value: `path` optional when the MCP working directory is a project; otherwise the tool returns structured missing-argument detail.
+- `--min-confidence <0-1>`: filter weak findings, default `0.0`.
+- `--pack <pack>`: optional smell rule pack; inferred from scope, path, and query markers when omitted.
+- `--include-docs`: optional; inferred true for documentation paths and false for code paths.
+- `--include-generated`: optional; defaults false unless explicitly requested.
 
 Inference behavior:
 
 - Infer language and likely catalog scope from the scan path and nearby project files.
+- Infer scan `path`, `pack`, and `include_docs` where safe.
 - Include inference metadata in the scan result so follow-up commands can reuse it.
 - If evidence is ambiguous, use `all` for scope and omit the language filter.
+- If `path` cannot be inferred, return missing-argument detail instead of scanning the plugin install directory by accident.
 
 Examples:
 

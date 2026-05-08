@@ -18,7 +18,7 @@ Argument mapping:
 - First quoted or unflagged text: `query` required.
 - `--language <language>`: optional implementation language. If omitted, infer it from codebase files, path hints, and prompt terms.
 - `--scope <scope>`: optional catalog scope. If omitted, infer `object-design`, `integration-design`, a catalog domain, or `all` from codebase and prompt context.
-- `--status <status>`: ADR status, default `Proposed`.
+- `--status <status>`: optional ADR status. If omitted, infer `Accepted`, `Superseded`, or `Deprecated` from decision wording, otherwise default `Proposed`.
 
 Inference behavior:
 
@@ -26,6 +26,7 @@ Inference behavior:
 - Prefer explicit arguments when supplied.
 - Otherwise infer from nearby project files, stack markers, path names, and the decision text.
 - If evidence is ambiguous, use `all` for scope and omit the language filter.
+- If `query` is missing, return structured missing-argument detail because the decision intent is not safely inferable from codebase context alone.
 
 Examples:
 

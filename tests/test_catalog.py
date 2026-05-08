@@ -214,6 +214,7 @@ class CatalogTests(unittest.TestCase):
         self.assertIn("/patterns-recommend", tool_descriptions)
         for tool in tools:
             with self.subTest(tool=tool["name"]):
+                self.assertFalse(tool.get("inputSchema", {}).get("required"), f"{tool['name']} should return missing-argument diagnostics instead of schema-blocking calls")
                 for argument_name, argument_schema in tool.get("inputSchema", {}).get("properties", {}).items():
                     self.assertTrue(argument_schema.get("description"), f"{tool['name']}.{argument_name}")
                     if argument_schema.get("type") == "array":
@@ -233,6 +234,34 @@ class CatalogTests(unittest.TestCase):
         slash_help = call_tool("patterns_help", {"command": "/patterns-scan help"})
         self.assertTrue(slash_help["found"])
         self.assertEqual("patterns-scan", slash_help["command"])
+
+    def test_mcp_infers_optional_parameters_and_reports_missing_intent(self) -> None:
+        missing_recommend = call_tool("patterns_recommend", {})
+        self.assertFalse(missing_recommend["ok"])
+        self.assertEqual("query", missing_recommend["missingArguments"][0]["name"])
+        self.assertIn("argumentResolution", missing_recommend)
+
+        scan = call_tool("patterns_scan", {"path": "plugins/design-patterns/data/playbooks/event-fanout.md"})
+        self.assertTrue(scan["argumentResolution"]["inferred"])
+        self.assertTrue(
+            any(item["name"] == "include_docs" and item.get("value") is True for item in scan["argumentResolution"]["inferred"])
+        )
+
+        context = call_tool("patterns_context", {"path": "plugins/design-patterns/data/playbooks/event-fanout.md"})
+        self.assertIn("architecture guidance for", context["query"])
+        self.assertTrue(any(item["name"] == "query" for item in context["argumentResolution"]["inferred"]))
+
+        simulate = call_tool("patterns_simulate", {"query": "production retry outage and dead-letter recovery"})
+        self.assertEqual("operability", simulate["risk"])
+        self.assertTrue(any(item["name"] == "risk" and item.get("value") == "operability" for item in simulate["argumentResolution"]["inferred"]))
+
+        missing_migration = call_tool("patterns_migrate", {"source": "hardcoded provider switch"})
+        self.assertFalse(missing_migration["ok"])
+        self.assertEqual("target", missing_migration["missingArguments"][0]["name"])
+
+        snippets = call_tool("patterns_snippets", {"query": "provider selection leaks into domain code"})
+        self.assertTrue(snippets["patterns"])
+        self.assertTrue(any(item["name"] == "patterns" for item in snippets["argumentResolution"]["inferred"]))
 
     def test_language_and_scope_are_inferred_when_omitted(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

@@ -1,6 +1,6 @@
 ---
 description: Build a model-ready pattern context pack for code and a design question
-argument-hint: "help | <path> --query <problem> [--language <language>] [--scope <scope>]"
+argument-hint: "help | [path] [--query <problem>] [--language <language>] [--scope <scope>] [--pack <pack>]"
 ---
 
 # Patterns Context
@@ -15,10 +15,11 @@ Help behavior:
 
 Argument mapping:
 
-- First positional value: `path` required.
-- `--query <problem>`: design question or feature context required.
+- First positional value: `path` optional when the MCP working directory is a project; otherwise the tool returns structured missing-argument detail.
+- `--query <problem>`: optional; inferred as a generic architecture-guidance query from the resolved path when omitted.
 - `--language <language>`: optional implementation language. If omitted, infer it from codebase files, path hints, and prompt terms.
 - `--scope <scope>`: optional catalog scope. If omitted, infer `object-design`, `integration-design`, a catalog domain, or `all` from codebase and prompt context.
+- `--pack <pack>`: optional scan rule pack; inferred from scope, path, and query markers when omitted.
 
 Inference behavior:
 
@@ -26,6 +27,7 @@ Inference behavior:
 - Prefer explicit arguments when supplied.
 - Otherwise infer from the target path, nearby project files, stack markers, and the query.
 - If evidence is ambiguous, use `all` for scope and omit the language filter.
+- If `path` cannot be inferred, return missing-argument detail instead of building context from the plugin install directory.
 
 Examples:
 
