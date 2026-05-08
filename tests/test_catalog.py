@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -24,6 +25,7 @@ from pattern_catalog import (
 )
 from pattern_context import context_pack, decision_simulation, migration_plan
 from pattern_graph import catalog_graph, graph_query
+from pattern_inference import infer_request_context
 from pattern_intelligence import recommend_entries
 from pattern_mcp_server import call_tool, tool_definitions
 from pattern_scanner import scan_path, scan_text
@@ -225,6 +227,28 @@ class CatalogTests(unittest.TestCase):
         slash_help = call_tool("patterns_help", {"command": "/patterns-scan help"})
         self.assertTrue(slash_help["found"])
         self.assertEqual("patterns-scan", slash_help["command"])
+
+    def test_language_and_scope_are_inferred_when_omitted(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "pyproject.toml").write_text("[project]\nname = 'sample'\n", encoding="utf-8")
+            (root / "app").mkdir()
+            (root / "app" / "providers.py").write_text("def select_provider(name):\n    pass\n", encoding="utf-8")
+            inference = infer_request_context(
+                query="hardcoded provider selection needs a cleaner strategy boundary",
+                paths=[str(root / "app")],
+            )
+            self.assertEqual("python", inference["language"])
+            self.assertEqual("object-design", inference["scope"])
+
+            context = call_tool(
+                "patterns_context",
+                {"path": str(root / "app"), "query": "hardcoded provider selection needs a cleaner strategy boundary"},
+            )
+            self.assertEqual("python", context["language"])
+            self.assertEqual("object-design", context["scope"])
+            self.assertTrue(context["inference"]["languageWasInferred"])
+            self.assertTrue(context["inference"]["scopeWasInferred"])
 
     def test_dynamic_workbench_is_plugin_backed(self) -> None:
         self.assertIn("Pattern Workbench", app_html())

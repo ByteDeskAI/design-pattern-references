@@ -161,17 +161,17 @@ For user-facing MCP requests, prefer the plugin slash commands. Ask for `/patter
 ```text
 /patterns-help
 /patterns-scan help
-/patterns-recommend "add a new SCM provider without changing rule execution code" --language python --scope backend --limit 5
+/patterns-recommend "add a new SCM provider without changing rule execution code" --limit 5
 /patterns-scan backend/app/workflow_engine --min-confidence 0.45
-/patterns-context backend/app/providers/ai --query "adding a new AI provider safely" --language python --scope backend
-/patterns-simulate "Strategy vs Chain of Responsibility for AI provider failover" --language python --risk operability
-/patterns-migrate "hardcoded if/elif provider selection" --to strategy --language python
-/patterns-snippets strategy,idempotent-receiver --language python
-/patterns-adr "durable event storage for SSE replay: Redis vs PostgreSQL" --language python --scope backend
+/patterns-context backend/app/providers/ai --query "adding a new AI provider safely"
+/patterns-simulate "Strategy vs Chain of Responsibility for AI provider failover" --risk operability
+/patterns-migrate "hardcoded if/elif provider selection" --to strategy
+/patterns-snippets strategy,idempotent-receiver
+/patterns-adr "durable event storage for SSE replay: Redis vs PostgreSQL"
 /patterns-graph "what patterns mitigate naive exactly once"
 ```
 
-The MCP server also exposes `patterns_examples` and `patterns_help`; they return these slash commands, help forms, corresponding MCP tool names, and JSON arguments for agents that inspect schemas before answering.
+Omit `--language` and `--scope` unless you want to override inference. The plugin infers both from prompt terms, command paths, stack markers, and nearby project files. The MCP server also exposes `patterns_examples` and `patterns_help`; they return these slash commands, help forms, corresponding MCP tool names, inferred-context behavior, and JSON arguments for agents that inspect schemas before answering.
 
 ## MCP Auto-Start
 

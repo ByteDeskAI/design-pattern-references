@@ -16,14 +16,20 @@ Help behavior:
 Argument mapping:
 
 - First positional value: comma-separated pattern slugs required.
-- `--language <language>`: implementation language filter.
+- `--language <language>`: optional implementation language filter. If omitted, infer it from codebase files, path hints, and prompt terms.
+
+Inference behavior:
+
+- Do not ask for `--language` just because it is missing.
+- Infer language and scope context before filtering snippets.
+- If language evidence is ambiguous, return matching snippets across languages.
 
 Examples:
 
 ```text
-/patterns-snippets strategy --language python
-/patterns-snippets strategy,idempotent-receiver --language python
-/patterns-snippets content-based-router,dead-letter-channel --language csharp
+/patterns-snippets strategy
+/patterns-snippets strategy,idempotent-receiver
+/patterns-snippets content-based-router,dead-letter-channel
 ```
 
 Return snippets only when they are relevant to the requested language and pattern. Include the catalog slugs so the user can chain into `/patterns-context` or `/patterns-migrate`.

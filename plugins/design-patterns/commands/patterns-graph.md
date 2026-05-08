@@ -18,6 +18,11 @@ Argument mapping:
 - Quoted or unflagged text: optional `query`.
 - `--format json`: request graph-shaped output when the caller needs machine-readable relationships.
 
+Inference behavior:
+
+- Graph queries use the full catalog relationship map.
+- Language and scope are not required for this command, but follow-up recommendations should infer them when omitted.
+
 Examples:
 
 ```text

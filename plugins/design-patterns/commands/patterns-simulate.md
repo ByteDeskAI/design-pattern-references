@@ -16,16 +16,22 @@ Help behavior:
 Argument mapping:
 
 - First quoted or unflagged text: `query` required.
-- `--language <language>`: implementation language.
+- `--language <language>`: optional implementation language. If omitted, infer it from codebase files, path hints, and prompt terms.
 - `--risk <risk>`: scorecard emphasis.
 - `--limit <n>`: number of options to score.
+
+Inference behavior:
+
+- Do not ask for `--language` just because it is missing.
+- Infer language and scope context from the codebase and decision text before scoring.
+- If evidence is ambiguous, score without a language filter and keep scope as `all`.
 
 Examples:
 
 ```text
-/patterns-simulate "Strategy vs Chain of Responsibility for AI provider failover" --language python --risk operability
-/patterns-simulate "Command vs State for workflow node execution lifecycle" --language typescript
-/patterns-simulate "event fanout with replay and dead-letter handling" --language csharp --limit 4
+/patterns-simulate "Strategy vs Chain of Responsibility for AI provider failover" --risk operability
+/patterns-simulate "Command vs State for workflow node execution lifecycle"
+/patterns-simulate "event fanout with replay and dead-letter handling" --limit 4
 ```
 
 Return a scorecard-style comparison, the recommended option, and the signals that would change the decision.

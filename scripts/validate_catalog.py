@@ -500,6 +500,9 @@ def validate_commands() -> None:
         require(f"/{command} help" in text, f"{command}: must document /{command} help")
         require("Help behavior:" in text, f"{command}: must define help behavior")
         require("help" in frontmatter["argument-hint"], f"{command}: argument-hint must mention help")
+        if command != "patterns-help":
+            require("Inference behavior:" in text, f"{command}: must define language/scope inference behavior")
+            require("infer" in text.casefold(), f"{command}: must mention inference")
         if command in COMMAND_TO_MCP_TOOL:
             require(COMMAND_TO_MCP_TOOL[command] in text, f"{command}: must map to its MCP tool")
             require(f"/{command}" in examples_text, f"patterns-examples must include /{command}")
@@ -555,6 +558,7 @@ def validate_plugin_workbench() -> None:
         "pattern_scanner.py",
         "pattern_context.py",
         "pattern_graph.py",
+        "pattern_inference.py",
         "pattern_mcp_server.py",
         "workbench_analysis.py",
         "workbench_api.py",
@@ -569,6 +573,9 @@ def validate_plugin_workbench() -> None:
         require(f'"{command}"' in cli_text, f"Plugin CLI must expose {command} subcommand")
     require("pattern_workbench" in cli_text, "Plugin CLI serve command must use the plugin workbench module")
     require("serve_stdio" in cli_text, "Plugin CLI must expose the MCP stdio server")
+    mcp_text = (PLUGIN / "lib" / "pattern_mcp_server.py").read_text(encoding="utf-8")
+    require("infer_request_context" in mcp_text, "MCP server must infer language and scope when omitted")
+    require("patterns_help" in mcp_text, "MCP server must expose pattern command help")
 
 
 def main() -> int:

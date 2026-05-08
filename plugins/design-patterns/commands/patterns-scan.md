@@ -21,6 +21,12 @@ Argument mapping:
 - `--include-docs`: include documentation files in the scan.
 - `--include-generated`: include generated files.
 
+Inference behavior:
+
+- Infer language and likely catalog scope from the scan path and nearby project files.
+- Include inference metadata in the scan result so follow-up commands can reuse it.
+- If evidence is ambiguous, use `all` for scope and omit the language filter.
+
 Examples:
 
 ```text

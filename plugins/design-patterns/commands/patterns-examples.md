@@ -11,6 +11,12 @@ If the user asks for "example MCP requests", "how do I call the design patterns 
 
 Call the `patterns_examples` MCP tool when available. If the tool is unavailable, use the examples below directly.
 
+Inference behavior:
+
+- Omit `--language` and `--scope` unless the user explicitly wants to override inference.
+- The plugin infers both from codebase files, path hints, stack markers, and the request text.
+- Examples should demonstrate inference-first requests.
+
 Help behavior:
 
 - `/patterns-examples help`, `/patterns-examples --help`, or `/patterns-examples -h` returns help only.
@@ -22,28 +28,30 @@ Use this response shape:
 ```text
 /patterns-examples [topic]
 /patterns-help [command]
-/patterns-recommend "<architecture force or problem>" [--language <language>] [--scope <scope>] [--risk <risk>] [--limit <n>]
+/patterns-recommend "<architecture force or problem>" [--risk <risk>] [--limit <n>]
 /patterns-scan <path> [--min-confidence <0-1>] [--include-docs] [--include-generated]
-/patterns-context <path> --query "<problem>" [--language <language>] [--scope <scope>]
-/patterns-simulate "<decision or competing options>" [--language <language>] [--risk <risk>] [--limit <n>]
-/patterns-migrate "<current smell or source shape>" --to <target-pattern> [--language <language>] [--query "<context>"]
-/patterns-snippets <pattern-slug>[,<pattern-slug>...] [--language <language>]
-/patterns-adr "<architecture decision>" [--language <language>] [--scope <scope>] [--status <status>]
+/patterns-context <path> --query "<problem>"
+/patterns-simulate "<decision or competing options>" [--risk <risk>] [--limit <n>]
+/patterns-migrate "<current smell or source shape>" --to <target-pattern> [--query "<context>"]
+/patterns-snippets <pattern-slug>[,<pattern-slug>...]
+/patterns-adr "<architecture decision>" [--status <status>]
 /patterns-graph ["relationship question"] [--format json]
 ```
+
+Omit `--language` and `--scope` unless the user explicitly wants to override inference. The plugin infers both from codebase files, path hints, stack markers, and the request text.
 
 Examples:
 
 ```text
 /patterns-help patterns-scan
 /patterns-scan help
-/patterns-recommend "add a new SCM provider without changing rule execution code" --language python --scope backend --limit 5
+/patterns-recommend "add a new SCM provider without changing rule execution code" --limit 5
 /patterns-scan backend/app/workflow_engine --min-confidence 0.45
-/patterns-context backend/app/providers/ai --query "adding a new AI provider safely" --language python --scope backend
-/patterns-simulate "Strategy vs Chain of Responsibility for AI provider failover" --language python --risk operability
-/patterns-migrate "hardcoded if/elif provider selection" --to strategy --language python
-/patterns-snippets strategy,idempotent-receiver --language python
-/patterns-adr "durable event storage for SSE replay: Redis vs PostgreSQL" --language python --scope backend
+/patterns-context backend/app/providers/ai --query "adding a new AI provider safely"
+/patterns-simulate "Strategy vs Chain of Responsibility for AI provider failover" --risk operability
+/patterns-migrate "hardcoded if/elif provider selection" --to strategy
+/patterns-snippets strategy,idempotent-receiver
+/patterns-adr "durable event storage for SSE replay: Redis vs PostgreSQL"
 /patterns-graph "what patterns mitigate naive exactly once"
 ```
 

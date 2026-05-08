@@ -8,11 +8,12 @@ from typing import Any
 
 from pattern_context import context_pack, decision_simulation, migration_plan, snippet_matches
 from pattern_graph import catalog_graph, graph_query
+from pattern_inference import infer_request_context
 from pattern_intelligence import adr_payload, recommend_entries
 from pattern_scanner import scan_path
 
 
-SERVER_INFO = {"name": "design-patterns", "version": "0.8.3"}
+SERVER_INFO = {"name": "design-patterns", "version": "0.8.4"}
 
 
 SLASH_COMMAND_HELP: dict[str, dict[str, Any]] = {
@@ -22,15 +23,15 @@ SLASH_COMMAND_HELP: dict[str, dict[str, Any]] = {
         "usage": '/patterns-recommend "<query>" [--language <language>] [--scope <scope>] [--risk <risk>] [--limit <n>]',
         "helpCommand": "/patterns-recommend help",
         "options": [
-            "--language <language>: filter guidance to a language such as python, csharp, java, typescript, go, rust, or cpp.",
-            "--scope <scope>: focus on object-design, integration-design, backend, frontend, or all.",
+            "--language <language>: optional; inferred from codebase and prompt context when omitted.",
+            "--scope <scope>: optional; inferred as object-design, integration-design, a catalog domain, or all when omitted.",
             "--risk <risk>: bias recommendations toward balanced, operability, simplicity, or similar decision forces.",
             "--limit <n>: maximum recommendation count.",
         ],
         "examples": [
-            '/patterns-recommend "add a new SCM provider without changing rule execution code" --language python --scope backend --limit 5',
-            '/patterns-recommend "streaming job events to multiple UI consumers" --language typescript --scope frontend',
-            '/patterns-recommend "duplicate delivery repeats side effects" --scope integration-design --risk operability',
+            '/patterns-recommend "add a new SCM provider without changing rule execution code" --limit 5',
+            '/patterns-recommend "streaming job events to multiple UI consumers"',
+            '/patterns-recommend "duplicate delivery repeats side effects" --risk operability',
         ],
         "arguments": {
             "query": "add a new SCM provider without changing rule execution code",
@@ -64,13 +65,13 @@ SLASH_COMMAND_HELP: dict[str, dict[str, Any]] = {
         "helpCommand": "/patterns-context help",
         "options": [
             '--query "<problem>": design question or feature context; required.',
-            "--language <language>: implementation language.",
-            "--scope <scope>: catalog scope such as backend, frontend, object-design, or integration-design.",
+            "--language <language>: optional; inferred from codebase and prompt context when omitted.",
+            "--scope <scope>: optional; inferred as object-design, integration-design, a catalog domain, or all when omitted.",
         ],
         "examples": [
-            '/patterns-context backend/app/providers/ai --query "adding a new AI provider safely" --language python --scope backend',
-            '/patterns-context frontend/src/state --query "managing streaming job state" --language typescript --scope frontend',
-            '/patterns-context services/orders --query "duplicate message handling and replay" --language csharp --scope integration-design',
+            '/patterns-context backend/app/providers/ai --query "adding a new AI provider safely"',
+            '/patterns-context frontend/src/state --query "managing streaming job state"',
+            '/patterns-context services/orders --query "duplicate message handling and replay"',
         ],
         "arguments": {
             "path": "backend/app/providers/ai",
@@ -85,14 +86,15 @@ SLASH_COMMAND_HELP: dict[str, dict[str, Any]] = {
         "usage": '/patterns-simulate "<decision or competing options>" [--language <language>] [--risk <risk>] [--limit <n>]',
         "helpCommand": "/patterns-simulate help",
         "options": [
-            "--language <language>: implementation language.",
+            "--language <language>: optional; inferred from codebase and prompt context when omitted.",
+            "--scope is inferred for result context even though this command scores options across the matched catalog set.",
             "--risk <risk>: scorecard emphasis such as operability, simplicity, or balanced.",
             "--limit <n>: number of options to score.",
         ],
         "examples": [
-            '/patterns-simulate "Strategy vs Chain of Responsibility for AI provider failover" --language python --risk operability',
-            '/patterns-simulate "Command vs State for workflow node execution lifecycle" --language typescript',
-            '/patterns-simulate "event fanout with replay and dead-letter handling" --language csharp --limit 4',
+            '/patterns-simulate "Strategy vs Chain of Responsibility for AI provider failover" --risk operability',
+            '/patterns-simulate "Command vs State for workflow node execution lifecycle"',
+            '/patterns-simulate "event fanout with replay and dead-letter handling" --limit 4',
         ],
         "arguments": {
             "query": "Strategy vs Chain of Responsibility for AI provider failover",
@@ -107,12 +109,13 @@ SLASH_COMMAND_HELP: dict[str, dict[str, Any]] = {
         "helpCommand": "/patterns-migrate help",
         "options": [
             "--to <target-pattern>: target pattern slug or name; required.",
-            "--language <language>: implementation language.",
+            "--language <language>: optional; inferred from codebase and prompt context when omitted.",
+            "--scope is inferred for result context even though migration is driven by source and target.",
             '--query "<context>": extra project context.',
         ],
         "examples": [
-            '/patterns-migrate "hardcoded if/elif provider selection" --to strategy --language python',
-            '/patterns-migrate "fat router with inline persistence and branching" --to facade --language typescript',
+            '/patterns-migrate "hardcoded if/elif provider selection" --to strategy',
+            '/patterns-migrate "fat router with inline persistence and branching" --to facade',
             '/patterns-migrate provider-switch-sprawl --to bridge --query "providers are GitHub, GitLab, and Bitbucket"',
         ],
         "arguments": {
@@ -127,12 +130,13 @@ SLASH_COMMAND_HELP: dict[str, dict[str, Any]] = {
         "usage": "/patterns-snippets <pattern-slug>[,<pattern-slug>...] [--language <language>]",
         "helpCommand": "/patterns-snippets help",
         "options": [
-            "--language <language>: implementation language filter.",
+            "--language <language>: optional; inferred from codebase and prompt context when omitted.",
+            "--scope is inferred for result context even though snippet lookup is pattern-slug driven.",
         ],
         "examples": [
-            "/patterns-snippets strategy,idempotent-receiver --language python",
-            "/patterns-snippets strategy --language python",
-            "/patterns-snippets content-based-router,dead-letter-channel --language csharp",
+            "/patterns-snippets strategy,idempotent-receiver",
+            "/patterns-snippets strategy",
+            "/patterns-snippets content-based-router,dead-letter-channel",
         ],
         "arguments": {"patterns": ["strategy", "idempotent-receiver"], "language": "python"},
     },
@@ -142,14 +146,14 @@ SLASH_COMMAND_HELP: dict[str, dict[str, Any]] = {
         "usage": '/patterns-adr "<architecture decision>" [--language <language>] [--scope <scope>] [--status <status>]',
         "helpCommand": "/patterns-adr help",
         "options": [
-            "--language <language>: implementation language.",
-            "--scope <scope>: catalog scope.",
+            "--language <language>: optional; inferred from codebase and prompt context when omitted.",
+            "--scope <scope>: optional; inferred as object-design, integration-design, a catalog domain, or all when omitted.",
             "--status <status>: ADR status, default Proposed.",
         ],
         "examples": [
-            '/patterns-adr "durable event storage for SSE replay: Redis vs PostgreSQL" --language python --scope backend',
-            '/patterns-adr "choosing between Registry and Chain of Responsibility for executor dispatch" --language python',
-            '/patterns-adr "message replay and dead-letter handling for order events" --language csharp --scope integration-design',
+            '/patterns-adr "durable event storage for SSE replay: Redis vs PostgreSQL"',
+            '/patterns-adr "choosing between Registry and Chain of Responsibility for executor dispatch"',
+            '/patterns-adr "message replay and dead-letter handling for order events"',
         ],
         "arguments": {
             "query": "durable event storage for SSE replay: Redis vs PostgreSQL",
@@ -164,6 +168,7 @@ SLASH_COMMAND_HELP: dict[str, dict[str, Any]] = {
         "helpCommand": "/patterns-graph help",
         "options": [
             "--format json: ask for graph-shaped output when machine-readable relationships are useful.",
+            "--language and --scope are not needed; graph queries use the full catalog relationship map.",
         ],
         "examples": [
             '/patterns-graph "what patterns mitigate naive exactly once"',
@@ -180,6 +185,7 @@ SLASH_COMMAND_HELP: dict[str, dict[str, Any]] = {
         "helpCommand": "/patterns-examples help",
         "options": [
             "topic: optional focus area such as scan, context, migrate, adr, graph, snippets, or recommend.",
+            "Examples intentionally omit language and scope when inference should choose them from codebase and context.",
         ],
         "examples": [
             "/patterns-examples",
@@ -195,6 +201,7 @@ SLASH_COMMAND_HELP: dict[str, dict[str, Any]] = {
         "helpCommand": "/patterns-help help",
         "options": [
             "command: optional command name such as patterns-scan, /patterns-scan, or scan.",
+            "Help explains when language and scope are inferred instead of supplied.",
         ],
         "examples": [
             "/patterns-help",
@@ -242,7 +249,7 @@ def tool_definitions() -> list[dict[str, Any]]:
     return [
         {
             "name": "patterns_recommend",
-            "description": 'Recommend catalog patterns, playbooks, recipes, and smells for an architecture force. User slash command: /patterns-recommend "<query>" [--language python] [--scope backend] [--limit 5].',
+            "description": 'Recommend catalog patterns, playbooks, recipes, and smells for an architecture force. User slash command: /patterns-recommend "<query>" [--limit 5]. Language and scope are inferred when omitted.',
             "inputSchema": {
                 "type": "object",
                 "properties": {
@@ -272,7 +279,7 @@ def tool_definitions() -> list[dict[str, Any]]:
         },
         {
             "name": "patterns_adr",
-            "description": 'Generate an ADR-style catalog-backed architecture decision seed. User slash command: /patterns-adr "<decision>" [--language python] [--scope backend].',
+            "description": 'Generate an ADR-style catalog-backed architecture decision seed. User slash command: /patterns-adr "<decision>". Language and scope are inferred when omitted.',
             "inputSchema": {
                 "type": "object",
                 "properties": {"query": string_schema, "language": string_schema, "scope": string_schema, "status": string_schema},
@@ -281,7 +288,7 @@ def tool_definitions() -> list[dict[str, Any]]:
         },
         {
             "name": "patterns_context",
-            "description": 'Build a model-ready context pack with scan findings, recommendations, snippets, and ADR seed. User slash command: /patterns-context <path> --query "<problem>" [--language python].',
+            "description": 'Build a model-ready context pack with scan findings, recommendations, snippets, and ADR seed. User slash command: /patterns-context <path> --query "<problem>". Language and scope are inferred when omitted.',
             "inputSchema": {
                 "type": "object",
                 "properties": {"path": string_schema, "query": string_schema, "language": string_schema, "scope": string_schema},
@@ -298,7 +305,7 @@ def tool_definitions() -> list[dict[str, Any]]:
         },
         {
             "name": "patterns_simulate",
-            "description": 'Score likely pattern options against the architecture decision scorecard. User slash command: /patterns-simulate "<decision>" [--language python] [--risk operability].',
+            "description": 'Score likely pattern options against the architecture decision scorecard. User slash command: /patterns-simulate "<decision>" [--risk operability]. Language and scope context are inferred when omitted.',
             "inputSchema": {
                 "type": "object",
                 "properties": {"query": string_schema, "language": string_schema, "risk": string_schema, "limit": {"type": "integer"}},
@@ -307,7 +314,7 @@ def tool_definitions() -> list[dict[str, Any]]:
         },
         {
             "name": "patterns_migrate",
-            "description": 'Create a recipe-backed migration plan from a smell/current shape to a target pattern. User slash command: /patterns-migrate "<current smell>" --to <target-pattern> [--language python].',
+            "description": 'Create a recipe-backed migration plan from a smell/current shape to a target pattern. User slash command: /patterns-migrate "<current smell>" --to <target-pattern>. Language and scope context are inferred when omitted.',
             "inputSchema": {
                 "type": "object",
                 "properties": {"source": string_schema, "target": string_schema, "language": string_schema, "query": string_schema},
@@ -316,7 +323,7 @@ def tool_definitions() -> list[dict[str, Any]]:
         },
         {
             "name": "patterns_snippets",
-            "description": "Return language-specific implementation snippets for catalog pattern slugs. User slash command: /patterns-snippets strategy,idempotent-receiver [--language python].",
+            "description": "Return language-specific implementation snippets for catalog pattern slugs. User slash command: /patterns-snippets strategy,idempotent-receiver. Language and scope context are inferred when omitted.",
             "inputSchema": {
                 "type": "object",
                 "properties": {
@@ -349,6 +356,30 @@ def _json_text(value: Any) -> dict[str, str]:
     return {"type": "text", "text": json.dumps(value, indent=2, sort_keys=True)}
 
 
+def _inference(
+    arguments: dict[str, Any],
+    *,
+    query: str = "",
+    paths: list[str] | None = None,
+) -> dict[str, Any]:
+    language = arguments.get("language")
+    scope = arguments.get("scope")
+    return infer_request_context(
+        query=query,
+        paths=paths or [],
+        language=str(language).strip() if language else None,
+        scope=str(scope).strip() if scope else None,
+    )
+
+
+def _add_inference(payload: Any, inference: dict[str, Any]) -> Any:
+    if isinstance(payload, dict):
+        enriched = dict(payload)
+        enriched["inference"] = inference
+        return enriched
+    return payload
+
+
 def call_tool(name: str, arguments: dict[str, Any]) -> Any:
     if name == "patterns_help":
         return help_payload(str(arguments.get("command", "")))
@@ -362,55 +393,93 @@ def call_tool(name: str, arguments: dict[str, Any]) -> Any:
             "help": "Run /<command> help for command-specific help, for example /patterns-recommend help.",
         }
     if name == "patterns_recommend":
+        query = str(arguments.get("query", ""))
+        inference = _inference(arguments, query=query)
         return recommend_entries(
-            str(arguments.get("query", "")),
-            scope=str(arguments.get("scope", "all")),
-            language=arguments.get("language") or None,
+            query,
+            scope=str(inference.get("scope") or "all"),
+            language=inference.get("language") or None,
             risk=str(arguments.get("risk", "balanced")),
             limit=int(arguments.get("limit", 8)),
             include_snippets=True,
         )
     if name == "patterns_scan":
-        return scan_path(
-            str(arguments.get("path", ".")),
-            pack=str(arguments.get("pack", "all")),
-            include_docs=bool(arguments.get("include_docs", False)),
-            include_generated=bool(arguments.get("include_generated", False)),
-            min_confidence=float(arguments.get("min_confidence", 0.0)),
+        path = str(arguments.get("path", "."))
+        inference = _inference(arguments, query=path, paths=[path])
+        return _add_inference(
+            scan_path(
+                path,
+                pack=str(arguments.get("pack", "all")),
+                include_docs=bool(arguments.get("include_docs", False)),
+                include_generated=bool(arguments.get("include_generated", False)),
+                min_confidence=float(arguments.get("min_confidence", 0.0)),
+            ),
+            inference,
         )
     if name == "patterns_adr":
-        return adr_payload(
-            str(arguments.get("query", "")),
-            status=str(arguments.get("status", "Proposed")),
-            language=arguments.get("language") or None,
-            scope=str(arguments.get("scope", "all")),
+        query = str(arguments.get("query", ""))
+        inference = _inference(arguments, query=query)
+        return _add_inference(
+            adr_payload(
+                query,
+                status=str(arguments.get("status", "Proposed")),
+                language=inference.get("language") or None,
+                scope=str(inference.get("scope") or "all"),
+            ),
+            inference,
         )
     if name == "patterns_context":
-        return context_pack(
-            str(arguments.get("path", ".")),
-            str(arguments.get("query", "")),
-            language=arguments.get("language") or None,
-            scope=str(arguments.get("scope", "all")),
+        path = str(arguments.get("path", "."))
+        query = str(arguments.get("query", ""))
+        inference = _inference(arguments, query=query, paths=[path])
+        return _add_inference(
+            context_pack(
+                path,
+                query,
+                language=inference.get("language") or None,
+                scope=str(inference.get("scope") or "all"),
+            ),
+            inference,
         )
     if name == "patterns_graph":
         query = str(arguments.get("query", "")).strip()
         return graph_query(query) if query else catalog_graph()
     if name == "patterns_simulate":
-        return decision_simulation(
-            str(arguments.get("query", "")),
-            language=arguments.get("language") or None,
-            risk=str(arguments.get("risk", "balanced")),
-            limit=int(arguments.get("limit", 5)),
+        query = str(arguments.get("query", ""))
+        inference = _inference(arguments, query=query)
+        return _add_inference(
+            decision_simulation(
+                query,
+                language=inference.get("language") or None,
+                risk=str(arguments.get("risk", "balanced")),
+                limit=int(arguments.get("limit", 5)),
+            ),
+            inference,
         )
     if name == "patterns_migrate":
-        return migration_plan(
-            str(arguments.get("source", "")),
-            str(arguments.get("target", "")),
-            language=arguments.get("language") or None,
-            query=str(arguments.get("query", "")),
+        query = " ".join(
+            part
+            for part in [
+                str(arguments.get("source", "")),
+                str(arguments.get("target", "")),
+                str(arguments.get("query", "")),
+            ]
+            if part
+        )
+        inference = _inference(arguments, query=query)
+        return _add_inference(
+            migration_plan(
+                str(arguments.get("source", "")),
+                str(arguments.get("target", "")),
+                language=inference.get("language") or None,
+                query=str(arguments.get("query", "")),
+            ),
+            inference,
         )
     if name == "patterns_snippets":
-        return snippet_matches(set(arguments.get("patterns", [])), arguments.get("language") or None)
+        patterns = set(arguments.get("patterns", []))
+        inference = _inference(arguments, query=" ".join(sorted(patterns)))
+        return snippet_matches(patterns, inference.get("language") or None)
     raise ValueError(f"Unknown tool: {name}")
 
 

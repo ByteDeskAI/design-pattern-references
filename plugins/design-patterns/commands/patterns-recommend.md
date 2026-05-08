@@ -16,17 +16,24 @@ Help behavior:
 Argument mapping:
 
 - First quoted or unflagged text: `query` required.
-- `--language <language>`: language filter.
-- `--scope <scope>`: catalog scope such as `object-design`, `integration-design`, `backend`, `frontend`, or `all`.
+- `--language <language>`: optional language filter. If omitted, infer it from codebase files, path hints, and prompt terms.
+- `--scope <scope>`: optional catalog scope. If omitted, infer `object-design`, `integration-design`, a catalog domain, or `all` from codebase and prompt context.
 - `--risk <risk>`: decision emphasis such as `balanced`, `operability`, or `simplicity`.
 - `--limit <n>`: maximum recommendations.
+
+Inference behavior:
+
+- Do not ask for `--language` or `--scope` just because they are missing.
+- Prefer explicit arguments when supplied.
+- Otherwise infer from nearby project files, stack markers, path names, and the problem statement.
+- If evidence is ambiguous, use `all` for scope and omit the language filter.
 
 Examples:
 
 ```text
-/patterns-recommend "add a new SCM provider without changing rule execution code" --language python --scope backend --limit 5
-/patterns-recommend "streaming job events to multiple UI consumers" --language typescript --scope frontend
-/patterns-recommend "duplicate delivery repeats side effects" --scope integration-design --risk operability
+/patterns-recommend "add a new SCM provider without changing rule execution code" --limit 5
+/patterns-recommend "streaming job events to multiple UI consumers"
+/patterns-recommend "duplicate delivery repeats side effects" --risk operability
 ```
 
 Return the highest-signal recommendations with why they matched, when they might be wrong, and the smallest next design move.

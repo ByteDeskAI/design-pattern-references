@@ -16,16 +16,23 @@ Help behavior:
 Argument mapping:
 
 - First quoted or unflagged text: `query` required.
-- `--language <language>`: implementation language.
-- `--scope <scope>`: catalog scope.
+- `--language <language>`: optional implementation language. If omitted, infer it from codebase files, path hints, and prompt terms.
+- `--scope <scope>`: optional catalog scope. If omitted, infer `object-design`, `integration-design`, a catalog domain, or `all` from codebase and prompt context.
 - `--status <status>`: ADR status, default `Proposed`.
+
+Inference behavior:
+
+- Do not ask for `--language` or `--scope` just because they are missing.
+- Prefer explicit arguments when supplied.
+- Otherwise infer from nearby project files, stack markers, path names, and the decision text.
+- If evidence is ambiguous, use `all` for scope and omit the language filter.
 
 Examples:
 
 ```text
-/patterns-adr "choosing between Registry and Chain of Responsibility for executor dispatch" --language python
-/patterns-adr "durable SSE event storage: Redis vs PostgreSQL" --scope backend --status Proposed
-/patterns-adr "message replay and dead-letter handling for order events" --language csharp --scope integration-design
+/patterns-adr "choosing between Registry and Chain of Responsibility for executor dispatch"
+/patterns-adr "durable SSE event storage: Redis vs PostgreSQL" --status Proposed
+/patterns-adr "message replay and dead-letter handling for order events"
 ```
 
 Return a decision seed with context, options, recommendation, consequences, verification, and rollback signals.

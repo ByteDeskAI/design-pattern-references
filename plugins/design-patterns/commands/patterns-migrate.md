@@ -17,14 +17,20 @@ Argument mapping:
 
 - First quoted or unflagged text: `source` required.
 - `--to <target-pattern>`: `target` required.
-- `--language <language>`: implementation language.
+- `--language <language>`: optional implementation language. If omitted, infer it from codebase files, path hints, and prompt terms.
 - `--query <context>`: extra project context.
+
+Inference behavior:
+
+- Do not ask for `--language` just because it is missing.
+- Infer language and scope context from the source, target, query, and nearby project files.
+- If evidence is ambiguous, plan without a language filter and keep scope as `all`.
 
 Examples:
 
 ```text
-/patterns-migrate "hardcoded if/elif provider selection" --to strategy --language python
-/patterns-migrate "fat router with inline persistence and branching" --to facade --language typescript
+/patterns-migrate "hardcoded if/elif provider selection" --to strategy
+/patterns-migrate "fat router with inline persistence and branching" --to facade
 /patterns-migrate provider-switch-sprawl --to bridge --query "providers are GitHub, GitLab, and Bitbucket"
 ```
 
