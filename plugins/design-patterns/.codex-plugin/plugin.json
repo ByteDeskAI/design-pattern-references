@@ -1,6 +1,6 @@
 {
   "name": "design-patterns",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Source-neutral advisor, Markdown reference catalog, MCP tooling, and dynamic workbench for software design patterns.",
   "author": {
     "name": "ByteDeskAI",
@@ -17,7 +17,7 @@
     "refactoring"
   ],
   "skills": "./skills/",
-  "mcpServers": "./.mcp.json",
+  "mcpServers": "./.codex-mcp.json",
   "interface": {
     "displayName": "Design Patterns",
     "shortDescription": "Pattern advice, architecture review, and refactoring guidance.",

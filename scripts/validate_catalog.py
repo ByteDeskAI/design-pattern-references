@@ -147,26 +147,37 @@ def validate_codex_manifest() -> None:
     require(entry["policy"]["authentication"] in {"ON_INSTALL", "ON_USE"}, "Codex authentication policy is invalid")
     require(entry.get("category"), "Codex marketplace entry must include category")
     require(plugin["skills"] == "./skills/", "Codex plugin must expose the shared skills directory")
-    require(plugin["mcpServers"] == "./.mcp.json", "Codex plugin must expose the shared MCP server config")
+    require(plugin["mcpServers"] == "./.codex-mcp.json", "Codex plugin must expose the Codex MCP server config")
     require(plugin["version"] == load_json(PLUGIN / ".claude-plugin" / "plugin.json")["version"], "Claude and Codex plugin versions must match")
 
 
 def validate_mcp_metadata() -> None:
-    plugin_config = load_json(PLUGIN / ".mcp.json")
+    claude_plugin_config = load_json(PLUGIN / ".mcp.json")
+    codex_plugin_config = load_json(PLUGIN / ".codex-mcp.json")
     project_config = load_json(ROOT / ".mcp.json")
-    plugin_servers = plugin_config.get("mcpServers", {})
+    claude_plugin_servers = claude_plugin_config.get("mcpServers", {})
+    codex_plugin_servers = codex_plugin_config.get("mcpServers", {})
     project_servers = project_config.get("mcpServers", {})
-    require("design-patterns" in plugin_servers, "Plugin .mcp.json must expose design-patterns server")
+    require((PLUGIN / "bin" / "patterns-mcp").exists(), "Missing install-root-aware MCP launcher")
+    require("design-patterns" in claude_plugin_servers, "Claude plugin .mcp.json must expose design-patterns server")
+    require("design-patterns" in codex_plugin_servers, "Codex plugin .codex-mcp.json must expose design-patterns server")
     require("design-patterns" in project_servers, "Project .mcp.json must expose design-patterns server")
-    plugin_server = plugin_servers["design-patterns"]
+    claude_plugin_server = claude_plugin_servers["design-patterns"]
+    codex_plugin_server = codex_plugin_servers["design-patterns"]
     project_server = project_servers["design-patterns"]
-    require(plugin_server.get("type") == "stdio", "Plugin MCP server must be stdio")
+    require(claude_plugin_server.get("type") == "stdio", "Claude plugin MCP server must be stdio")
+    require(codex_plugin_server.get("type") == "stdio", "Codex plugin MCP server must be stdio")
     require(project_server.get("type") == "stdio", "Project MCP server must be stdio")
-    require(plugin_server.get("command") == "./bin/patterns", "Plugin MCP server command must use the bundled patterns CLI")
-    require(project_server.get("command") == "./plugins/design-patterns/bin/patterns", "Project MCP server command must use the repo-local patterns CLI")
-    require(plugin_server.get("args") == ["mcp"], "Plugin MCP server args must run the mcp subcommand")
-    require(project_server.get("args") == ["mcp"], "Project MCP server args must run the mcp subcommand")
-    require(plugin_server.get("cwd") == ".", "Plugin MCP server cwd must be plugin root")
+    require(
+        claude_plugin_server.get("command") == "${CLAUDE_PLUGIN_ROOT}/bin/patterns-mcp",
+        "Claude plugin MCP server command must use the installed plugin root",
+    )
+    require(codex_plugin_server.get("command") == "./bin/patterns-mcp", "Codex plugin MCP server command must use the bundled launcher")
+    require(project_server.get("command") == "./plugins/design-patterns/bin/patterns-mcp", "Project MCP server command must use the repo-local launcher")
+    require(not claude_plugin_server.get("args"), "Claude plugin MCP server should not need args")
+    require(not codex_plugin_server.get("args"), "Codex plugin MCP server should not need args")
+    require(not project_server.get("args"), "Project MCP server should not need args")
+    require(codex_plugin_server.get("cwd") == ".", "Codex plugin MCP server cwd must be plugin root")
     require(project_server.get("cwd") == ".", "Project MCP server cwd must be the repo root")
 
 

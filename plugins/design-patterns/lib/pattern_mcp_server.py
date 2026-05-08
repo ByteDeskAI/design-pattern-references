@@ -12,7 +12,7 @@ from pattern_intelligence import adr_payload, recommend_entries
 from pattern_scanner import scan_path
 
 
-SERVER_INFO = {"name": "design-patterns", "version": "0.8.0"}
+SERVER_INFO = {"name": "design-patterns", "version": "0.8.1"}
 
 
 def tool_definitions() -> list[dict[str, Any]]:

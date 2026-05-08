@@ -57,7 +57,8 @@ The plugin contributes:
 - `skills/integration-flow-review/SKILL.md`: review message-driven and integration flows.
 - `agents/pattern-architect.md`: deeper architecture and design-review agent.
 - `bin/patterns`: local catalog lookup, architecture scan, ADR, graph, context-pack, decision-simulation, migration, MCP, and dynamic workbench helper.
-- `.mcp.json`: stdio MCP server config used by Claude plugin installs and Codex plugin installs.
+- `.mcp.json`: Claude plugin MCP config that resolves from the installed plugin root.
+- `.codex-mcp.json`: Codex plugin MCP config that resolves from the installed plugin root.
 - root `.mcp.json`: project-scoped Claude MCP config so this repository shows `design-patterns` connected when opened as a Claude project.
 - `data/patterns/*.md`: canonical Markdown pattern entries.
 - `data/playbooks/*.md`: source-neutral pattern-composition playbooks.
@@ -154,9 +155,10 @@ The CLI can also generate ADR-style decision drafts, export and query the typed 
 
 ## MCP Auto-Start
 
-The repository includes two MCP configurations:
+The repository includes three MCP configurations:
 
-- [plugins/design-patterns/.mcp.json](/Users/kon1790/GitHub/design-pattern-reference/plugins/design-patterns/.mcp.json): packaged with the plugin. Claude and Codex can start the `design-patterns` stdio server from the installed plugin root.
+- [plugins/design-patterns/.mcp.json](/Users/kon1790/GitHub/design-pattern-reference/plugins/design-patterns/.mcp.json): packaged with the Claude plugin. It starts `design-patterns` through `${CLAUDE_PLUGIN_ROOT}/bin/patterns-mcp`, so global and project installs launch from the actual installed plugin directory.
+- [plugins/design-patterns/.codex-mcp.json](/Users/kon1790/GitHub/design-pattern-reference/plugins/design-patterns/.codex-mcp.json): packaged with the Codex plugin. It uses the same install-root-aware launcher with Codex plugin-relative paths.
 - [.mcp.json](/Users/kon1790/GitHub/design-pattern-reference/.mcp.json): project-scoped config for this repository checkout. Opening Claude in this project should show `design-patterns` as connected automatically.
 
 Claude verification:
@@ -166,7 +168,7 @@ claude mcp get design-patterns
 claude mcp list
 ```
 
-Codex compatibility is declared through `plugins/design-patterns/.codex-plugin/plugin.json` with `mcpServers: "./.mcp.json"`, and the same `.mcp.json` uses a repo-relative stdio command compatible with Codex plugin installs.
+Codex compatibility is declared through `plugins/design-patterns/.codex-plugin/plugin.json` with `mcpServers: "./.codex-mcp.json"`, while the repository root `.mcp.json` remains project-scoped for local Claude development.
 
 ## Dynamic Catalog Workbench
 
@@ -237,6 +239,7 @@ python3 scripts/run_evals.py
 │   └── plugins/marketplace.json
 ├── plugins/
 │   └── design-patterns/
+│       ├── .codex-mcp.json
 │       ├── .mcp.json
 │       ├── .claude-plugin/plugin.json
 │       ├── .codex-plugin/plugin.json

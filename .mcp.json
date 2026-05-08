@@ -2,8 +2,7 @@
   "mcpServers": {
     "design-patterns": {
       "type": "stdio",
-      "command": "./plugins/design-patterns/bin/patterns",
-      "args": ["mcp"],
+      "command": "./plugins/design-patterns/bin/patterns-mcp",
       "cwd": "."
     }
   }
