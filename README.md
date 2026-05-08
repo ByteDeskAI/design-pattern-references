@@ -72,6 +72,7 @@ The plugin contributes:
 - `site/index.html`: generated searchable catalog site packaged inside the plugin.
 - `docs/classic-object-pattern-coverage.md`: source-neutral coverage audit for the classic 23 object-design patterns and Python language support.
 - `skills/*/references/{usages,examples,implementation,catalog}.md`: detailed skill documentation loaded on demand.
+- `commands/patterns-*.md`: Claude slash-command wrappers for copyable MCP-backed requests such as `/patterns-recommend`, `/patterns-scan`, and `/patterns-context`.
 
 Each skill declares fully qualified skill frontmatter: `name`, `description`, `when_to_use`, `argument-hint`, invocation controls, conservative `allowed-tools`, and `model: inherit`.
 
@@ -152,6 +153,23 @@ The plugin now supports three layers of guidance:
 Skills should use the catalog progressively: detect smells, select patterns or playbooks, compare alternatives, then produce decision-ready output with consequences, tests, observability, and rollback signals.
 
 The CLI can also generate ADR-style decision drafts, export and query the typed catalog graph, explain catalog entries, explain why recommendations matched, scan a repository for pattern-relevant architecture smells, build context packs, score options through a decision simulation, produce migration plans, list snippets, and run a stdio MCP server.
+
+## Slash Command Examples
+
+For user-facing MCP requests, prefer the plugin slash commands. Ask for `/patterns-examples` to get the full copyable list.
+
+```text
+/patterns-recommend "add a new SCM provider without changing rule execution code" --language python --scope backend --limit 5
+/patterns-scan backend/app/workflow_engine --min-confidence 0.45
+/patterns-context backend/app/providers/ai --query "adding a new AI provider safely" --language python --scope backend
+/patterns-simulate "Strategy vs Chain of Responsibility for AI provider failover" --language python --risk operability
+/patterns-migrate "hardcoded if/elif provider selection" --to strategy --language python
+/patterns-snippets strategy,idempotent-receiver --language python
+/patterns-adr "durable event storage for SSE replay: Redis vs PostgreSQL" --language python --scope backend
+/patterns-graph "what patterns mitigate naive exactly once"
+```
+
+The MCP server also exposes `patterns_examples`; it returns these slash commands with the corresponding MCP tool names and JSON arguments for agents that inspect schemas before answering.
 
 ## MCP Auto-Start
 
@@ -245,6 +263,7 @@ python3 scripts/run_evals.py
 │       ├── .codex-plugin/plugin.json
 │       ├── agents/pattern-architect.md
 │       ├── bin/patterns
+│       ├── commands/patterns-*.md
 │       ├── data/
 │       │   ├── languages/*.md
 │       │   ├── patterns/*.md

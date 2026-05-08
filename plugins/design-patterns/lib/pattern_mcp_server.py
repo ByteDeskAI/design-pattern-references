@@ -12,7 +12,73 @@ from pattern_intelligence import adr_payload, recommend_entries
 from pattern_scanner import scan_path
 
 
-SERVER_INFO = {"name": "design-patterns", "version": "0.8.1"}
+SERVER_INFO = {"name": "design-patterns", "version": "0.8.2"}
+
+
+SLASH_COMMAND_EXAMPLES: list[dict[str, Any]] = [
+    {
+        "command": '/patterns-recommend "add a new SCM provider without changing rule execution code" --language python --scope backend --limit 5',
+        "tool": "patterns_recommend",
+        "arguments": {
+            "query": "add a new SCM provider without changing rule execution code",
+            "language": "python",
+            "scope": "backend",
+            "limit": 5,
+        },
+    },
+    {
+        "command": '/patterns-scan backend/app/workflow_engine --min-confidence 0.45',
+        "tool": "patterns_scan",
+        "arguments": {"path": "backend/app/workflow_engine", "min_confidence": 0.45},
+    },
+    {
+        "command": '/patterns-context backend/app/providers/ai --query "adding a new AI provider safely" --language python --scope backend',
+        "tool": "patterns_context",
+        "arguments": {
+            "path": "backend/app/providers/ai",
+            "query": "adding a new AI provider safely",
+            "language": "python",
+            "scope": "backend",
+        },
+    },
+    {
+        "command": '/patterns-simulate "Strategy vs Chain of Responsibility for AI provider failover" --language python --risk operability',
+        "tool": "patterns_simulate",
+        "arguments": {
+            "query": "Strategy vs Chain of Responsibility for AI provider failover",
+            "language": "python",
+            "risk": "operability",
+        },
+    },
+    {
+        "command": '/patterns-migrate "hardcoded if/elif provider selection" --to strategy --language python',
+        "tool": "patterns_migrate",
+        "arguments": {
+            "source": "hardcoded if/elif provider selection",
+            "target": "strategy",
+            "language": "python",
+        },
+    },
+    {
+        "command": '/patterns-snippets strategy,idempotent-receiver --language python',
+        "tool": "patterns_snippets",
+        "arguments": {"patterns": ["strategy", "idempotent-receiver"], "language": "python"},
+    },
+    {
+        "command": '/patterns-adr "durable event storage for SSE replay: Redis vs PostgreSQL" --language python --scope backend',
+        "tool": "patterns_adr",
+        "arguments": {
+            "query": "durable event storage for SSE replay: Redis vs PostgreSQL",
+            "language": "python",
+            "scope": "backend",
+        },
+    },
+    {
+        "command": '/patterns-graph "what patterns mitigate naive exactly once"',
+        "tool": "patterns_graph",
+        "arguments": {"query": "what patterns mitigate naive exactly once"},
+    },
+]
 
 
 def tool_definitions() -> list[dict[str, Any]]:
@@ -20,7 +86,7 @@ def tool_definitions() -> list[dict[str, Any]]:
     return [
         {
             "name": "patterns_recommend",
-            "description": "Recommend catalog patterns, playbooks, recipes, and smells for an architecture force.",
+            "description": 'Recommend catalog patterns, playbooks, recipes, and smells for an architecture force. User slash command: /patterns-recommend "<query>" [--language python] [--scope backend] [--limit 5].',
             "inputSchema": {
                 "type": "object",
                 "properties": {
@@ -35,7 +101,7 @@ def tool_definitions() -> list[dict[str, Any]]:
         },
         {
             "name": "patterns_scan",
-            "description": "Scan a repository path or file for pattern-relevant architecture smells.",
+            "description": "Scan a repository path or file for pattern-relevant architecture smells. User slash command: /patterns-scan <path> [--min-confidence 0.45] [--include-docs].",
             "inputSchema": {
                 "type": "object",
                 "properties": {
@@ -50,7 +116,7 @@ def tool_definitions() -> list[dict[str, Any]]:
         },
         {
             "name": "patterns_adr",
-            "description": "Generate an ADR-style catalog-backed architecture decision seed.",
+            "description": 'Generate an ADR-style catalog-backed architecture decision seed. User slash command: /patterns-adr "<decision>" [--language python] [--scope backend].',
             "inputSchema": {
                 "type": "object",
                 "properties": {"query": string_schema, "language": string_schema, "scope": string_schema, "status": string_schema},
@@ -59,7 +125,7 @@ def tool_definitions() -> list[dict[str, Any]]:
         },
         {
             "name": "patterns_context",
-            "description": "Build a model-ready context pack with scan findings, recommendations, snippets, and ADR seed.",
+            "description": 'Build a model-ready context pack with scan findings, recommendations, snippets, and ADR seed. User slash command: /patterns-context <path> --query "<problem>" [--language python].',
             "inputSchema": {
                 "type": "object",
                 "properties": {"path": string_schema, "query": string_schema, "language": string_schema, "scope": string_schema},
@@ -68,7 +134,7 @@ def tool_definitions() -> list[dict[str, Any]]:
         },
         {
             "name": "patterns_graph",
-            "description": "Return the typed catalog graph or answer graph relationship questions.",
+            "description": 'Return the typed catalog graph or answer graph relationship questions. User slash command: /patterns-graph ["relationship question"].',
             "inputSchema": {
                 "type": "object",
                 "properties": {"query": string_schema, "format": string_schema},
@@ -76,7 +142,7 @@ def tool_definitions() -> list[dict[str, Any]]:
         },
         {
             "name": "patterns_simulate",
-            "description": "Score likely pattern options against the architecture decision scorecard.",
+            "description": 'Score likely pattern options against the architecture decision scorecard. User slash command: /patterns-simulate "<decision>" [--language python] [--risk operability].',
             "inputSchema": {
                 "type": "object",
                 "properties": {"query": string_schema, "language": string_schema, "risk": string_schema, "limit": {"type": "integer"}},
@@ -85,7 +151,7 @@ def tool_definitions() -> list[dict[str, Any]]:
         },
         {
             "name": "patterns_migrate",
-            "description": "Create a recipe-backed migration plan from a smell/current shape to a target pattern.",
+            "description": 'Create a recipe-backed migration plan from a smell/current shape to a target pattern. User slash command: /patterns-migrate "<current smell>" --to <target-pattern> [--language python].',
             "inputSchema": {
                 "type": "object",
                 "properties": {"source": string_schema, "target": string_schema, "language": string_schema, "query": string_schema},
@@ -94,7 +160,7 @@ def tool_definitions() -> list[dict[str, Any]]:
         },
         {
             "name": "patterns_snippets",
-            "description": "Return language-specific implementation snippets for catalog pattern slugs.",
+            "description": "Return language-specific implementation snippets for catalog pattern slugs. User slash command: /patterns-snippets strategy,idempotent-receiver [--language python].",
             "inputSchema": {
                 "type": "object",
                 "properties": {
@@ -102,6 +168,14 @@ def tool_definitions() -> list[dict[str, Any]]:
                     "language": string_schema,
                 },
                 "required": ["patterns"],
+            },
+        },
+        {
+            "name": "patterns_examples",
+            "description": "Return copyable /patterns-* slash-command examples for the design-patterns plugin. Use this when a user asks for example MCP requests or how to call the design patterns tool.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {"topic": string_schema},
             },
         },
     ]
@@ -112,6 +186,14 @@ def _json_text(value: Any) -> dict[str, str]:
 
 
 def call_tool(name: str, arguments: dict[str, Any]) -> Any:
+    if name == "patterns_examples":
+        topic = str(arguments.get("topic", "")).strip()
+        return {
+            "usage": "When users ask for example MCP requests, lead with these copyable slash commands instead of describing tool schemas.",
+            "format": '/patterns-<action> <required-argument> [--optional-flag value]',
+            "topic": topic or "all",
+            "slashCommands": SLASH_COMMAND_EXAMPLES,
+        }
     if name == "patterns_recommend":
         return recommend_entries(
             str(arguments.get("query", "")),

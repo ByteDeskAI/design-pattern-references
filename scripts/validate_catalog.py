@@ -97,6 +97,28 @@ REQUIRED_SKILL_FRONTMATTER = {
     "allowed-tools",
     "model",
 }
+EXPECTED_COMMANDS = {
+    "patterns-adr",
+    "patterns-context",
+    "patterns-examples",
+    "patterns-graph",
+    "patterns-migrate",
+    "patterns-recommend",
+    "patterns-scan",
+    "patterns-simulate",
+    "patterns-snippets",
+}
+COMMAND_TO_MCP_TOOL = {
+    "patterns-adr": "patterns_adr",
+    "patterns-context": "patterns_context",
+    "patterns-examples": "patterns_examples",
+    "patterns-graph": "patterns_graph",
+    "patterns-migrate": "patterns_migrate",
+    "patterns-recommend": "patterns_recommend",
+    "patterns-scan": "patterns_scan",
+    "patterns-simulate": "patterns_simulate",
+    "patterns-snippets": "patterns_snippets",
+}
 
 
 def load_json(path: Path) -> dict:
@@ -458,6 +480,26 @@ def validate_skills() -> None:
         require("## Output Contract" in usages, f"{skill}: usages.md must define an Output Contract")
 
 
+def validate_commands() -> None:
+    commands_root = PLUGIN / "commands"
+    require(commands_root.is_dir(), "Plugin must expose slash commands in commands/")
+    command_names = {path.stem for path in commands_root.glob("*.md")}
+    missing_commands = EXPECTED_COMMANDS - command_names
+    require(not missing_commands, f"Plugin slash commands missing: {sorted(missing_commands)}")
+    examples_text = (commands_root / "patterns-examples.md").read_text(encoding="utf-8")
+    require("Return copyable slash commands" in examples_text, "patterns-examples must prioritize copyable slash commands")
+    for command in EXPECTED_COMMANDS:
+        command_path = commands_root / f"{command}.md"
+        text = command_path.read_text(encoding="utf-8")
+        frontmatter = parse_frontmatter(text, command)
+        require(frontmatter.get("description"), f"{command}: missing description")
+        require(frontmatter.get("argument-hint"), f"{command}: missing argument-hint")
+        require(f"/{command}" in text, f"{command}: must include a copyable slash example")
+        if command in COMMAND_TO_MCP_TOOL:
+            require(COMMAND_TO_MCP_TOOL[command] in text, f"{command}: must map to its MCP tool")
+            require(f"/{command}" in examples_text, f"patterns-examples must include /{command}")
+
+
 def validate_evals() -> None:
     evals_path = ROOT / "evals" / "evals.json"
     require(evals_path.exists(), "Missing evals/evals.json")
@@ -535,6 +577,7 @@ def main() -> int:
     validate_taxonomy_and_snippets()
     validate_languages()
     validate_skills()
+    validate_commands()
     validate_evals()
     validate_docs_site()
     validate_plugin_workbench()

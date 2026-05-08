@@ -1,7 +1,7 @@
 ---
 name: pattern-advisor
-description: Advise on selecting, comparing, applying, or reviewing reusable software design patterns.
-when_to_use: Use when a user asks which pattern fits, whether a pattern is overkill, how patterns compare, how to apply a pattern in a specific language, or how to reason about object-design and integration-design tradeoffs.
+description: Advise on selecting, comparing, applying, reviewing, or invoking reusable software design patterns.
+when_to_use: Use when a user asks which pattern fits, whether a pattern is overkill, how patterns compare, how to apply a pattern in a specific language, how to reason about object-design and integration-design tradeoffs, or how to make design-pattern MCP or slash-command requests.
 argument-hint: "[problem-or-pattern]"
 user-invocable: true
 disable-model-invocation: false
@@ -12,6 +12,8 @@ model: inherit
 # Pattern Advisor
 
 Use this skill to help users select, compare, implement, or review established software design patterns.
+
+If a user asks for example MCP requests or how to call the design-patterns tool, return copyable `/patterns-*` slash commands first. Use `/patterns-examples` as the canonical answer shape and avoid replying with only MCP schema descriptions.
 
 ## References
 

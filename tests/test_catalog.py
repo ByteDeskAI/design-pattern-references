@@ -206,8 +206,14 @@ class CatalogTests(unittest.TestCase):
 
         tools = tool_definitions()
         self.assertIn("patterns_context", {tool["name"] for tool in tools})
+        self.assertIn("patterns_examples", {tool["name"] for tool in tools})
+        tool_descriptions = " ".join(tool["description"] for tool in tools)
+        self.assertIn("/patterns-recommend", tool_descriptions)
         mcp_result = call_tool("patterns_simulate", {"query": "duplicate delivery repeats side effects", "language": "python"})
         self.assertTrue(mcp_result["options"])
+        examples = call_tool("patterns_examples", {})
+        self.assertIn("/patterns-recommend", examples["slashCommands"][0]["command"])
+        self.assertEqual("patterns_recommend", examples["slashCommands"][0]["tool"])
 
     def test_dynamic_workbench_is_plugin_backed(self) -> None:
         self.assertIn("Pattern Workbench", app_html())
