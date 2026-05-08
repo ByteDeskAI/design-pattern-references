@@ -72,7 +72,7 @@ The plugin contributes:
 - `site/index.html`: generated searchable catalog site packaged inside the plugin.
 - `docs/classic-object-pattern-coverage.md`: source-neutral coverage audit for the classic 23 object-design patterns and Python language support.
 - `skills/*/references/{usages,examples,implementation,catalog}.md`: detailed skill documentation loaded on demand.
-- `commands/patterns-*.md`: Claude slash-command wrappers for copyable MCP-backed requests such as `/patterns-recommend`, `/patterns-scan`, and `/patterns-context`.
+- `commands/patterns-*.md`: Claude slash-command wrappers for copyable MCP-backed requests such as `/patterns-recommend`, `/patterns-scan`, and `/patterns-context`; each command supports `help`.
 
 Each skill declares fully qualified skill frontmatter: `name`, `description`, `when_to_use`, `argument-hint`, invocation controls, conservative `allowed-tools`, and `model: inherit`.
 
@@ -159,6 +159,8 @@ The CLI can also generate ADR-style decision drafts, export and query the typed 
 For user-facing MCP requests, prefer the plugin slash commands. Ask for `/patterns-examples` to get the full copyable list.
 
 ```text
+/patterns-help
+/patterns-scan help
 /patterns-recommend "add a new SCM provider without changing rule execution code" --language python --scope backend --limit 5
 /patterns-scan backend/app/workflow_engine --min-confidence 0.45
 /patterns-context backend/app/providers/ai --query "adding a new AI provider safely" --language python --scope backend
@@ -169,7 +171,7 @@ For user-facing MCP requests, prefer the plugin slash commands. Ask for `/patter
 /patterns-graph "what patterns mitigate naive exactly once"
 ```
 
-The MCP server also exposes `patterns_examples`; it returns these slash commands with the corresponding MCP tool names and JSON arguments for agents that inspect schemas before answering.
+The MCP server also exposes `patterns_examples` and `patterns_help`; they return these slash commands, help forms, corresponding MCP tool names, and JSON arguments for agents that inspect schemas before answering.
 
 ## MCP Auto-Start
 

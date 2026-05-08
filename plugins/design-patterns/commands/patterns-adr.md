@@ -1,11 +1,17 @@
 ---
 description: Generate an ADR-style seed backed by the pattern catalog
-argument-hint: "<decision> [--language <language>] [--scope <scope>] [--status <status>]"
+argument-hint: "help | <decision> [--language <language>] [--scope <scope>] [--status <status>]"
 ---
 
 # Patterns ADR
 
 Parse `$ARGUMENTS` into a `patterns_adr` MCP call.
+
+Help behavior:
+
+- `/patterns-adr help`, `/patterns-adr --help`, or `/patterns-adr -h` returns help only.
+- Help must include purpose, usage, options, examples, backing MCP tool, and JSON argument mapping.
+- Do not call `patterns_adr` when the user asks for help.
 
 Argument mapping:
 

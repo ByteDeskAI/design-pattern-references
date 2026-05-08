@@ -1,6 +1,6 @@
 ---
 description: Show copyable Design Patterns slash commands and MCP request examples
-argument-hint: "[topic-or-empty]"
+argument-hint: "help | [topic-or-empty]"
 ---
 
 # Design Patterns MCP Examples
@@ -11,10 +11,17 @@ If the user asks for "example MCP requests", "how do I call the design patterns 
 
 Call the `patterns_examples` MCP tool when available. If the tool is unavailable, use the examples below directly.
 
+Help behavior:
+
+- `/patterns-examples help`, `/patterns-examples --help`, or `/patterns-examples -h` returns help only.
+- Help must include purpose, usage, options, examples, backing MCP tool, and JSON argument mapping.
+- Do not call `patterns_examples` when the user asks for help unless using `patterns_help` to retrieve this help.
+
 Use this response shape:
 
 ```text
 /patterns-examples [topic]
+/patterns-help [command]
 /patterns-recommend "<architecture force or problem>" [--language <language>] [--scope <scope>] [--risk <risk>] [--limit <n>]
 /patterns-scan <path> [--min-confidence <0-1>] [--include-docs] [--include-generated]
 /patterns-context <path> --query "<problem>" [--language <language>] [--scope <scope>]
@@ -28,6 +35,8 @@ Use this response shape:
 Examples:
 
 ```text
+/patterns-help patterns-scan
+/patterns-scan help
 /patterns-recommend "add a new SCM provider without changing rule execution code" --language python --scope backend --limit 5
 /patterns-scan backend/app/workflow_engine --min-confidence 0.45
 /patterns-context backend/app/providers/ai --query "adding a new AI provider safely" --language python --scope backend

@@ -1,11 +1,17 @@
 ---
 description: Plan a migration from a current smell or shape to a target pattern
-argument-hint: "<source> --to <target-pattern> [--language <language>] [--query <context>]"
+argument-hint: "help | <source> --to <target-pattern> [--language <language>] [--query <context>]"
 ---
 
 # Patterns Migrate
 
 Parse `$ARGUMENTS` into a `patterns_migrate` MCP call.
+
+Help behavior:
+
+- `/patterns-migrate help`, `/patterns-migrate --help`, or `/patterns-migrate -h` returns help only.
+- Help must include purpose, usage, options, examples, backing MCP tool, and JSON argument mapping.
+- Do not call `patterns_migrate` when the user asks for help.
 
 Argument mapping:
 

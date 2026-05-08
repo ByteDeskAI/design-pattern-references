@@ -102,6 +102,7 @@ EXPECTED_COMMANDS = {
     "patterns-context",
     "patterns-examples",
     "patterns-graph",
+    "patterns-help",
     "patterns-migrate",
     "patterns-recommend",
     "patterns-scan",
@@ -113,6 +114,7 @@ COMMAND_TO_MCP_TOOL = {
     "patterns-context": "patterns_context",
     "patterns-examples": "patterns_examples",
     "patterns-graph": "patterns_graph",
+    "patterns-help": "patterns_help",
     "patterns-migrate": "patterns_migrate",
     "patterns-recommend": "patterns_recommend",
     "patterns-scan": "patterns_scan",
@@ -495,6 +497,9 @@ def validate_commands() -> None:
         require(frontmatter.get("description"), f"{command}: missing description")
         require(frontmatter.get("argument-hint"), f"{command}: missing argument-hint")
         require(f"/{command}" in text, f"{command}: must include a copyable slash example")
+        require(f"/{command} help" in text, f"{command}: must document /{command} help")
+        require("Help behavior:" in text, f"{command}: must define help behavior")
+        require("help" in frontmatter["argument-hint"], f"{command}: argument-hint must mention help")
         if command in COMMAND_TO_MCP_TOOL:
             require(COMMAND_TO_MCP_TOOL[command] in text, f"{command}: must map to its MCP tool")
             require(f"/{command}" in examples_text, f"patterns-examples must include /{command}")

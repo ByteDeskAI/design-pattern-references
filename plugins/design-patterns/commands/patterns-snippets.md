@@ -1,11 +1,17 @@
 ---
 description: Fetch language-specific implementation snippets for pattern slugs
-argument-hint: "<pattern-slug>[,<pattern-slug>...] [--language <language>]"
+argument-hint: "help | <pattern-slug>[,<pattern-slug>...] [--language <language>]"
 ---
 
 # Patterns Snippets
 
 Parse `$ARGUMENTS` into a `patterns_snippets` MCP call.
+
+Help behavior:
+
+- `/patterns-snippets help`, `/patterns-snippets --help`, or `/patterns-snippets -h` returns help only.
+- Help must include purpose, usage, options, examples, backing MCP tool, and JSON argument mapping.
+- Do not call `patterns_snippets` when the user asks for help.
 
 Argument mapping:
 

@@ -1,6 +1,6 @@
 {
   "name": "design-patterns",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "description": "Source-neutral advisor, Markdown reference catalog, MCP tooling, and dynamic workbench for software design patterns.",
   "author": {
     "name": "ByteDeskAI",
@@ -39,7 +39,8 @@
       "Plan this module toward a cleaner pattern.",
       "Build a context pack from code evidence and pattern references.",
       "Run the design-pattern MCP server for tool integrations.",
-      "Show copyable /patterns-* MCP request examples for this plugin."
+      "Show copyable /patterns-* MCP request examples for this plugin.",
+      "Show /patterns-* command help for every design-pattern MCP tool."
     ]
   }
 }

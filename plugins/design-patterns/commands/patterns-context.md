@@ -1,11 +1,17 @@
 ---
 description: Build a model-ready pattern context pack for code and a design question
-argument-hint: "<path> --query <problem> [--language <language>] [--scope <scope>]"
+argument-hint: "help | <path> --query <problem> [--language <language>] [--scope <scope>]"
 ---
 
 # Patterns Context
 
 Parse `$ARGUMENTS` into a `patterns_context` MCP call.
+
+Help behavior:
+
+- `/patterns-context help`, `/patterns-context --help`, or `/patterns-context -h` returns help only.
+- Help must include purpose, usage, options, examples, backing MCP tool, and JSON argument mapping.
+- Do not call `patterns_context` when the user asks for help.
 
 Argument mapping:
 

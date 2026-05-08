@@ -1,11 +1,17 @@
 ---
 description: Scan a file or directory for pattern-relevant architecture smells
-argument-hint: "<path> [--min-confidence <0-1>] [--pack <pack>] [--include-docs] [--include-generated]"
+argument-hint: "help | <path> [--min-confidence <0-1>] [--pack <pack>] [--include-docs] [--include-generated]"
 ---
 
 # Patterns Scan
 
 Parse `$ARGUMENTS` into a `patterns_scan` MCP call.
+
+Help behavior:
+
+- `/patterns-scan help`, `/patterns-scan --help`, or `/patterns-scan -h` returns help only.
+- Help must include purpose, usage, options, examples, backing MCP tool, and JSON argument mapping.
+- Do not call `patterns_scan` when the user asks for help.
 
 Argument mapping:
 

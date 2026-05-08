@@ -1,11 +1,17 @@
 ---
 description: Query the typed pattern catalog graph and relationships
-argument-hint: "[relationship-question] [--format json]"
+argument-hint: "help | [relationship-question] [--format json]"
 ---
 
 # Patterns Graph
 
 Parse `$ARGUMENTS` into a `patterns_graph` MCP call.
+
+Help behavior:
+
+- `/patterns-graph help`, `/patterns-graph --help`, or `/patterns-graph -h` returns help only.
+- Help must include purpose, usage, options, examples, backing MCP tool, and JSON argument mapping.
+- Do not call `patterns_graph` when the user asks for help.
 
 Argument mapping:
 

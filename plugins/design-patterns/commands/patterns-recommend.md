@@ -1,11 +1,17 @@
 ---
 description: Recommend design patterns for an architecture force or problem
-argument-hint: "<query> [--language <language>] [--scope <scope>] [--risk <risk>] [--limit <n>]"
+argument-hint: "help | <query> [--language <language>] [--scope <scope>] [--risk <risk>] [--limit <n>]"
 ---
 
 # Patterns Recommend
 
 Parse `$ARGUMENTS` into a `patterns_recommend` MCP call.
+
+Help behavior:
+
+- `/patterns-recommend help`, `/patterns-recommend --help`, or `/patterns-recommend -h` returns help only.
+- Help must include purpose, usage, options, examples, backing MCP tool, and JSON argument mapping.
+- Do not call `patterns_recommend` when the user asks for help.
 
 Argument mapping:
 

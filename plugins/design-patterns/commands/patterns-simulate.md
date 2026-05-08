@@ -1,11 +1,17 @@
 ---
 description: Score pattern options against architecture decision criteria
-argument-hint: "<decision-or-options> [--language <language>] [--risk <risk>] [--limit <n>]"
+argument-hint: "help | <decision-or-options> [--language <language>] [--risk <risk>] [--limit <n>]"
 ---
 
 # Patterns Simulate
 
 Parse `$ARGUMENTS` into a `patterns_simulate` MCP call.
+
+Help behavior:
+
+- `/patterns-simulate help`, `/patterns-simulate --help`, or `/patterns-simulate -h` returns help only.
+- Help must include purpose, usage, options, examples, backing MCP tool, and JSON argument mapping.
+- Do not call `patterns_simulate` when the user asks for help.
 
 Argument mapping:
 
