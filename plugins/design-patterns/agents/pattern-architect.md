@@ -1,6 +1,7 @@
 ---
 name: pattern-architect
 description: Reviews architecture and code through source-neutral design-pattern domains.
+argument-hint: "[path-or-architecture-question]"
 tools: Read, Grep, Glob, Bash
 ---
 

@@ -25,6 +25,7 @@ from pattern_catalog import (
     load_taxonomy,
     scope_names,
 )
+from pattern_mcp_server import tool_definitions
 
 
 KEBAB = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -120,6 +121,13 @@ COMMAND_TO_MCP_TOOL = {
     "patterns-scan": "patterns_scan",
     "patterns-simulate": "patterns_simulate",
     "patterns-snippets": "patterns_snippets",
+}
+EXPECTED_AGENTS = {"pattern-architect"}
+REQUIRED_AGENT_FRONTMATTER = {
+    "name",
+    "description",
+    "argument-hint",
+    "tools",
 }
 
 
@@ -453,7 +461,7 @@ def validate_skills() -> None:
     skills_root = PLUGIN / "skills"
     skill_names = {path.name for path in skills_root.iterdir() if path.is_dir()}
     require(EXPECTED_SKILLS <= skill_names, "Plugin is missing required skills")
-    for skill in EXPECTED_SKILLS:
+    for skill in sorted(skill_names):
         skill_file = skills_root / skill / "SKILL.md"
         require(skill_file.exists(), f"{skill}: missing SKILL.md")
         text = skill_file.read_text(encoding="utf-8")
@@ -490,7 +498,7 @@ def validate_commands() -> None:
     require(not missing_commands, f"Plugin slash commands missing: {sorted(missing_commands)}")
     examples_text = (commands_root / "patterns-examples.md").read_text(encoding="utf-8")
     require("Return copyable slash commands" in examples_text, "patterns-examples must prioritize copyable slash commands")
-    for command in EXPECTED_COMMANDS:
+    for command in sorted(command_names):
         command_path = commands_root / f"{command}.md"
         text = command_path.read_text(encoding="utf-8")
         frontmatter = parse_frontmatter(text, command)
@@ -506,6 +514,43 @@ def validate_commands() -> None:
         if command in COMMAND_TO_MCP_TOOL:
             require(COMMAND_TO_MCP_TOOL[command] in text, f"{command}: must map to its MCP tool")
             require(f"/{command}" in examples_text, f"patterns-examples must include /{command}")
+
+
+def validate_agents() -> None:
+    agents_root = PLUGIN / "agents"
+    require(agents_root.is_dir(), "Plugin must expose agents in agents/")
+    agent_names = {path.stem for path in agents_root.glob("*.md")}
+    missing_agents = EXPECTED_AGENTS - agent_names
+    require(not missing_agents, f"Plugin agents missing: {sorted(missing_agents)}")
+    for agent in sorted(agent_names):
+        agent_path = agents_root / f"{agent}.md"
+        text = agent_path.read_text(encoding="utf-8")
+        frontmatter = parse_frontmatter(text, agent)
+        missing = REQUIRED_AGENT_FRONTMATTER - set(frontmatter)
+        require(not missing, f"{agent}: missing frontmatter fields {sorted(missing)}")
+        require(frontmatter["name"] == agent, f"{agent}: name must match agent file")
+        require(frontmatter["description"], f"{agent}: description must not be empty")
+        require(frontmatter["argument-hint"].startswith("["), f"{agent}: argument-hint should describe agent arguments")
+        require(frontmatter["tools"], f"{agent}: tools must not be empty")
+
+
+def validate_mcp_tool_argument_helpers() -> None:
+    tools = tool_definitions()
+    require(tools, "MCP server must expose tool definitions")
+    for tool in tools:
+        name = tool.get("name", "<unknown>")
+        schema = tool.get("inputSchema", {})
+        properties = schema.get("properties", {})
+        require(tool.get("description"), f"{name}: MCP tool description must not be empty")
+        require(isinstance(properties, dict), f"{name}: MCP input properties must be an object")
+        for argument_name, argument_schema in properties.items():
+            label = f"{name}.{argument_name}"
+            require(isinstance(argument_schema, dict), f"{label}: MCP argument schema must be an object")
+            require(argument_schema.get("description"), f"{label}: missing MCP argument helper description")
+            if argument_schema.get("type") == "array":
+                item_schema = argument_schema.get("items", {})
+                require(isinstance(item_schema, dict), f"{label}: array items schema must be an object")
+                require(item_schema.get("description"), f"{label}: array item schema must include a helper description")
 
 
 def validate_evals() -> None:
@@ -590,10 +635,12 @@ def main() -> int:
     validate_languages()
     validate_skills()
     validate_commands()
+    validate_agents()
+    validate_mcp_tool_argument_helpers()
     validate_evals()
     validate_docs_site()
     validate_plugin_workbench()
-    print("Marketplace metadata, Markdown catalog, taxonomy, snippets, playbooks, smells, frameworks, recipes, scorecards, evals, docs, workbench, and skill metadata validation passed.")
+    print("Marketplace metadata, Markdown catalog, taxonomy, snippets, playbooks, smells, frameworks, recipes, scorecards, evals, docs, workbench, slash commands, agents, MCP helpers, and skill metadata validation passed.")
     return 0
 
 

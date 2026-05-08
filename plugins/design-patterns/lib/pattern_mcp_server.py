@@ -13,7 +13,7 @@ from pattern_intelligence import adr_payload, recommend_entries
 from pattern_scanner import scan_path
 
 
-SERVER_INFO = {"name": "design-patterns", "version": "0.8.4"}
+SERVER_INFO = {"name": "design-patterns", "version": "0.8.5"}
 
 
 SLASH_COMMAND_HELP: dict[str, dict[str, Any]] = {
@@ -244,8 +244,21 @@ def help_payload(command: str = "") -> dict[str, Any]:
     }
 
 
+def _arg(description: str, schema_type: str = "string", **extra: Any) -> dict[str, Any]:
+    schema: dict[str, Any] = {"type": schema_type, "description": description}
+    schema.update(extra)
+    return schema
+
+
+def _array_arg(description: str, item_description: str) -> dict[str, Any]:
+    return {
+        "type": "array",
+        "description": description,
+        "items": _arg(item_description),
+    }
+
+
 def tool_definitions() -> list[dict[str, Any]]:
-    string_schema = {"type": "string"}
     return [
         {
             "name": "patterns_recommend",
@@ -253,11 +266,11 @@ def tool_definitions() -> list[dict[str, Any]]:
             "inputSchema": {
                 "type": "object",
                 "properties": {
-                    "query": string_schema,
-                    "scope": string_schema,
-                    "language": string_schema,
-                    "risk": string_schema,
-                    "limit": {"type": "integer"},
+                    "query": _arg("Required architecture force, design problem, smell, or decision context to match against the catalog."),
+                    "scope": _arg("Optional catalog scope override. Omit to infer object-design, integration-design, a catalog domain, or all from the prompt and codebase."),
+                    "language": _arg("Optional implementation language override. Omit to infer from nearby files, project manifests, and request text."),
+                    "risk": _arg("Optional decision bias such as balanced, operability, simplicity, testability, or maintainability."),
+                    "limit": _arg("Optional maximum number of recommendations to return.", "integer"),
                 },
                 "required": ["query"],
             },
@@ -268,11 +281,11 @@ def tool_definitions() -> list[dict[str, Any]]:
             "inputSchema": {
                 "type": "object",
                 "properties": {
-                    "path": string_schema,
-                    "pack": string_schema,
-                    "include_docs": {"type": "boolean"},
-                    "include_generated": {"type": "boolean"},
-                    "min_confidence": {"type": "number"},
+                    "path": _arg("Required file or directory path to scan for pattern-relevant architecture smells."),
+                    "pack": _arg("Optional smell rule pack. Use all, object-design, integration-design, or a specific smell family when available."),
+                    "include_docs": _arg("Set true to include Markdown and documentation files in the scan.", "boolean"),
+                    "include_generated": _arg("Set true to include generated, build, vendor, or lock files that are skipped by default.", "boolean"),
+                    "min_confidence": _arg("Optional minimum confidence threshold from 0.0 to 1.0 for returned findings.", "number"),
                 },
                 "required": ["path"],
             },
@@ -282,7 +295,12 @@ def tool_definitions() -> list[dict[str, Any]]:
             "description": 'Generate an ADR-style catalog-backed architecture decision seed. User slash command: /patterns-adr "<decision>". Language and scope are inferred when omitted.',
             "inputSchema": {
                 "type": "object",
-                "properties": {"query": string_schema, "language": string_schema, "scope": string_schema, "status": string_schema},
+                "properties": {
+                    "query": _arg("Required architecture decision, competing option, force, or design context for the ADR seed."),
+                    "language": _arg("Optional implementation language override. Omit to infer from codebase and request context."),
+                    "scope": _arg("Optional catalog scope override. Omit to infer object-design, integration-design, a domain, or all."),
+                    "status": _arg("Optional ADR status label such as Proposed, Accepted, Superseded, or Deprecated."),
+                },
                 "required": ["query"],
             },
         },
@@ -291,7 +309,12 @@ def tool_definitions() -> list[dict[str, Any]]:
             "description": 'Build a model-ready context pack with scan findings, recommendations, snippets, and ADR seed. User slash command: /patterns-context <path> --query "<problem>". Language and scope are inferred when omitted.',
             "inputSchema": {
                 "type": "object",
-                "properties": {"path": string_schema, "query": string_schema, "language": string_schema, "scope": string_schema},
+                "properties": {
+                    "path": _arg("Required file or directory path that provides code evidence for scanning and inference."),
+                    "query": _arg("Required design question, feature goal, smell, or architecture force to build the context pack around."),
+                    "language": _arg("Optional implementation language override. Omit to infer from files, manifests, and request text."),
+                    "scope": _arg("Optional catalog scope override. Omit to infer object-design, integration-design, a domain, or all."),
+                },
                 "required": ["path", "query"],
             },
         },
@@ -300,7 +323,10 @@ def tool_definitions() -> list[dict[str, Any]]:
             "description": 'Return the typed catalog graph or answer graph relationship questions. User slash command: /patterns-graph ["relationship question"].',
             "inputSchema": {
                 "type": "object",
-                "properties": {"query": string_schema, "format": string_schema},
+                "properties": {
+                    "query": _arg("Optional graph relationship question, such as patterns related to a slug, mitigations, alternatives, or companions."),
+                    "format": _arg("Optional output preference. Use json when a machine-readable graph payload is needed."),
+                },
             },
         },
         {
@@ -308,7 +334,12 @@ def tool_definitions() -> list[dict[str, Any]]:
             "description": 'Score likely pattern options against the architecture decision scorecard. User slash command: /patterns-simulate "<decision>" [--risk operability]. Language and scope context are inferred when omitted.',
             "inputSchema": {
                 "type": "object",
-                "properties": {"query": string_schema, "language": string_schema, "risk": string_schema, "limit": {"type": "integer"}},
+                "properties": {
+                    "query": _arg("Required architecture decision, force, tradeoff, or competing pattern options to score."),
+                    "language": _arg("Optional implementation language override. Omit to infer from codebase and request context."),
+                    "risk": _arg("Optional scorecard bias such as balanced, operability, simplicity, testability, or maintainability."),
+                    "limit": _arg("Optional maximum number of candidate options to score.", "integer"),
+                },
                 "required": ["query"],
             },
         },
@@ -317,7 +348,12 @@ def tool_definitions() -> list[dict[str, Any]]:
             "description": 'Create a recipe-backed migration plan from a smell/current shape to a target pattern. User slash command: /patterns-migrate "<current smell>" --to <target-pattern>. Language and scope context are inferred when omitted.',
             "inputSchema": {
                 "type": "object",
-                "properties": {"source": string_schema, "target": string_schema, "language": string_schema, "query": string_schema},
+                "properties": {
+                    "source": _arg("Required current smell, code shape, architecture problem, or source pattern to migrate from."),
+                    "target": _arg("Required target pattern slug or name to migrate toward."),
+                    "language": _arg("Optional implementation language override. Omit to infer from source, target, query, and codebase context."),
+                    "query": _arg("Optional extra project context, constraints, framework notes, or rollout requirements."),
+                },
                 "required": ["source", "target"],
             },
         },
@@ -327,8 +363,11 @@ def tool_definitions() -> list[dict[str, Any]]:
             "inputSchema": {
                 "type": "object",
                 "properties": {
-                    "patterns": {"type": "array", "items": string_schema},
-                    "language": string_schema,
+                    "patterns": _array_arg(
+                        "Required catalog pattern slugs to retrieve snippets for.",
+                        "Catalog pattern slug, such as strategy, repository, idempotent-receiver, or content-based-router.",
+                    ),
+                    "language": _arg("Optional implementation language override. Omit to infer from requested patterns and codebase context."),
                 },
                 "required": ["patterns"],
             },
@@ -338,7 +377,9 @@ def tool_definitions() -> list[dict[str, Any]]:
             "description": "Return copyable /patterns-* slash-command examples for the design-patterns plugin. Use this when a user asks for example MCP requests or how to call the design patterns tool.",
             "inputSchema": {
                 "type": "object",
-                "properties": {"topic": string_schema},
+                "properties": {
+                    "topic": _arg("Optional focus area such as scan, context, migrate, adr, graph, snippets, recommend, or all."),
+                },
             },
         },
         {
@@ -346,7 +387,9 @@ def tool_definitions() -> list[dict[str, Any]]:
             "description": "Return help for all /patterns-* commands or one command. Use when a user asks what a design-pattern command does, including /<command> help.",
             "inputSchema": {
                 "type": "object",
-                "properties": {"command": string_schema},
+                "properties": {
+                    "command": _arg("Optional command name or help phrase, such as patterns-scan, /patterns-scan, scan, or /patterns-scan help."),
+                },
             },
         },
     ]

@@ -74,7 +74,7 @@ The plugin contributes:
 - `skills/*/references/{usages,examples,implementation,catalog}.md`: detailed skill documentation loaded on demand.
 - `commands/patterns-*.md`: Claude slash-command wrappers for copyable MCP-backed requests such as `/patterns-recommend`, `/patterns-scan`, and `/patterns-context`; each command supports `help`.
 
-Each skill declares fully qualified skill frontmatter: `name`, `description`, `when_to_use`, `argument-hint`, invocation controls, conservative `allowed-tools`, and `model: inherit`.
+Each skill declares fully qualified skill frontmatter: `name`, `description`, `when_to_use`, `argument-hint`, invocation controls, conservative `allowed-tools`, and `model: inherit`. Slash commands and agents also expose `argument-hint` frontmatter where supported, and every MCP tool input property includes a description so clients can show argument helpers.
 
 ## Catalog Model
 

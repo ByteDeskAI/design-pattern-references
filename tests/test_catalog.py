@@ -212,6 +212,12 @@ class CatalogTests(unittest.TestCase):
         self.assertIn("patterns_help", {tool["name"] for tool in tools})
         tool_descriptions = " ".join(tool["description"] for tool in tools)
         self.assertIn("/patterns-recommend", tool_descriptions)
+        for tool in tools:
+            with self.subTest(tool=tool["name"]):
+                for argument_name, argument_schema in tool.get("inputSchema", {}).get("properties", {}).items():
+                    self.assertTrue(argument_schema.get("description"), f"{tool['name']}.{argument_name}")
+                    if argument_schema.get("type") == "array":
+                        self.assertTrue(argument_schema.get("items", {}).get("description"), f"{tool['name']}.{argument_name} items")
         mcp_result = call_tool("patterns_simulate", {"query": "duplicate delivery repeats side effects", "language": "python"})
         self.assertTrue(mcp_result["options"])
         examples = call_tool("patterns_examples", {})
