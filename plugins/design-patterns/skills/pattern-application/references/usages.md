@@ -21,7 +21,7 @@ Before changing code, gather:
 - tests that already cover the behavior;
 - whether the change is local object design or integration flow.
 
-## Output Shape
+## Output Contract
 
 When planning:
 
@@ -38,3 +38,4 @@ When implementing:
 3. Run focused tests.
 4. Explain the new collaboration shape.
 
+Every implementation plan should also include rollback notes, compatibility risks, behavior-preserving tests, and the smallest first patch. If the requested pattern is too broad for one safe change, split it into phases and label later phases as follow-up work.

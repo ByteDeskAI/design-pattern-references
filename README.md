@@ -31,6 +31,8 @@ codex plugin marketplace add .
 - One installable plugin at `plugins/design-patterns`.
 - A source-neutral Markdown catalog of reusable design patterns.
 - Pattern domains for object design, integration design, messaging, transformation, endpoints, operations, construction, structure, and collaboration.
+- Architecture playbooks for recurring pattern combinations.
+- Architecture smells for detecting design risks before recommending patterns.
 - Language profiles for C#, Java, TypeScript, Python, Go, Rust, and C++.
 - A bundled `patterns` CLI that Claude Code and Codex can use after the plugin is installed.
 
@@ -42,12 +44,15 @@ The plugin contributes:
 
 - `skills/pattern-advisor/SKILL.md`: general model-invoked pattern guidance.
 - `skills/pattern-finder/SKILL.md`: discover and compare candidate patterns from a problem statement.
+- `skills/architecture-decision/SKILL.md`: produce ADR-style pattern decisions, tradeoffs, consequences, and verification plans.
 - `skills/architecture-issue-scan/SKILL.md`: find design and integration issues in code or architecture notes.
 - `skills/pattern-application/SKILL.md`: plan and apply a pattern-oriented refactor safely.
 - `skills/integration-flow-review/SKILL.md`: review message-driven and integration flows.
 - `agents/pattern-architect.md`: deeper architecture and design-review agent.
 - `bin/patterns`: local catalog lookup helper.
 - `data/patterns/*.md`: canonical Markdown pattern entries.
+- `data/playbooks/*.md`: source-neutral pattern-composition playbooks.
+- `data/smells/*.md`: source-neutral architecture smells and pattern responses.
 - `data/languages/*.md`: canonical Markdown language profiles.
 - `skills/*/references/{usages,examples,implementation,catalog}.md`: detailed skill documentation loaded on demand.
 
@@ -57,7 +62,7 @@ Each skill declares fully qualified skill frontmatter: `name`, `description`, `w
 
 The catalog is intentionally source-neutral. Patterns are organized by domain, category, group, and language applicability rather than by origin. New patterns can be added from any useful tradition, codebase, architecture review, or language ecosystem by adding a Markdown file under `plugins/design-patterns/data/patterns`.
 
-Each pattern file uses frontmatter for machine filtering and Markdown sections for Claude-readable guidance:
+Each pattern file uses frontmatter for machine filtering and Markdown sections for Claude-readable guidance. Pattern entries include decision metadata such as quality attributes, tradeoffs, failure modes, testing focus, observability focus, typed relationships, and implementation notes:
 
 ```text
 ---
@@ -72,6 +77,8 @@ languages:
   - typescript
 related:
   - state
+relationships:
+  - alternative:state
 references:
   - skills/pattern-advisor/references/implementation.md
 ---
@@ -88,9 +95,23 @@ Use the CLI to inspect the catalog:
 plugins/design-patterns/bin/patterns domains
 plugins/design-patterns/bin/patterns list object-design --language typescript
 plugins/design-patterns/bin/patterns search router --scope integration-design --language typescript
+plugins/design-patterns/bin/patterns recommend "duplicate delivery repeats side effects" --scope integration-design --language csharp
+plugins/design-patterns/bin/patterns compare strategy state template-method
+plugins/design-patterns/bin/patterns playbooks event-fanout
+plugins/design-patterns/bin/patterns smells naive-exactly-once
 plugins/design-patterns/bin/patterns show strategy --language csharp
 plugins/design-patterns/bin/patterns languages go
 ```
+
+## Architecture Guidance Model
+
+The plugin now supports three layers of guidance:
+
+- Patterns: individual reusable design responses.
+- Playbooks: source-neutral combinations of patterns for recurring architecture situations.
+- Smells: detectable design risks with pattern or no-pattern responses.
+
+Skills should use the catalog progressively: detect smells, select patterns or playbooks, compare alternatives, then produce decision-ready output with consequences, tests, observability, and rollback signals.
 
 ## Validation
 
@@ -108,6 +129,12 @@ claude plugin validate .
 
 Codex marketplace metadata is validated by `scripts/validate_catalog.py`.
 
+Unit tests cover the catalog loader and CLI behavior:
+
+```bash
+python3 -m unittest
+```
+
 ## Repository Layout
 
 ```text
@@ -124,9 +151,12 @@ Codex marketplace metadata is validated by `scripts/validate_catalog.py`.
 │       ├── bin/patterns
 │       ├── data/
 │       │   ├── languages/*.md
-│       │   └── patterns/*.md
+│       │   ├── patterns/*.md
+│       │   ├── playbooks/*.md
+│       │   └── smells/*.md
 │       ├── lib/pattern_catalog.py
 │       └── skills/
+│           ├── architecture-decision/SKILL.md
 │           ├── architecture-issue-scan/SKILL.md
 │           ├── integration-flow-review/SKILL.md
 │           ├── pattern-advisor/SKILL.md

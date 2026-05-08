@@ -12,7 +12,17 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "lib"))
 
-from pattern_catalog import attach_language, load_language_profiles, load_patterns, matches_scope, scope_names
+from pattern_catalog import (
+    attach_language,
+    entry_search_text,
+    load_catalog,
+    load_language_profiles,
+    load_patterns,
+    load_playbooks,
+    load_smells,
+    matches_scope,
+    scope_names,
+)
 
 
 def emit(value: object, as_json: bool, language: str | None = None) -> None:
@@ -51,6 +61,8 @@ def emit(value: object, as_json: bool, language: str | None = None) -> None:
                     print(f"- {item}")
             return
         print(f"{value.get('name')} ({value.get('slug')})")
+        if value.get("kind"):
+            print(f"Kind: {value['kind']}")
         if value.get("domain"):
             print(f"Domain: {value['domain']}")
         if value.get("category"):
@@ -59,22 +71,55 @@ def emit(value: object, as_json: bool, language: str | None = None) -> None:
             print("Groups: " + ", ".join(value["groups"]))
         if value.get("languages"):
             print("Languages: " + ", ".join(value["languages"]))
+        if value.get("qualityAttributes"):
+            print("Quality attributes: " + ", ".join(value["qualityAttributes"]))
+        if value.get("implementationComplexity"):
+            print(f"Implementation complexity: {value['implementationComplexity']}")
+        if value.get("operationalRisk"):
+            print(f"Operational risk: {value['operationalRisk']}")
         if value.get("intent"):
             print(f"Intent: {value['intent']}")
+        if value.get("symptom"):
+            print(f"Symptom: {value['symptom']}")
+        if value.get("whyItMatters"):
+            print(f"Why it matters: {value['whyItMatters']}")
         if language and value.get("languageNote"):
             print(f"{language}: {value['languageNote']}")
         elif value.get("languageNotes"):
             print("Language notes: " + ", ".join(sorted(value["languageNotes"])))
-        if value.get("whenToUse"):
-            print("When to use:")
-            for item in value["whenToUse"]:
-                print(f"- {item}")
-        if value.get("avoidWhen"):
-            print("Avoid when:")
-            for item in value["avoidWhen"]:
-                print(f"- {item}")
+        for field, label in (
+            ("whenToUse", "When to use"),
+            ("avoidWhen", "Avoid when"),
+            ("forces", "Forces"),
+            ("tradeoffNotes", "Tradeoffs"),
+            ("failureModeNotes", "Failure modes"),
+            ("testing", "Testing"),
+            ("observability", "Observability"),
+            ("implementationNotes", "Implementation notes"),
+            ("patternSet", "Pattern set"),
+            ("implementationSteps", "Implementation steps"),
+            ("verification", "Verification"),
+            ("patternResponses", "Pattern responses"),
+            ("checks", "Checks"),
+        ):
+            if value.get(field):
+                print(f"{label}:")
+                for item in value[field]:
+                    print(f"- {item}")
+        if value.get("patterns"):
+            print("Patterns: " + ", ".join(value["patterns"]))
+        if value.get("smells"):
+            print("Smells: " + ", ".join(value["smells"]))
         if value.get("related"):
             print("Related: " + ", ".join(value["related"]))
+        if value.get("relationshipTypes"):
+            print("Relationships:")
+            for kind, slugs in sorted(value["relationshipTypes"].items()):
+                print(f"- {kind}: {', '.join(slugs)}")
+        if value.get("references"):
+            print("References:")
+            for reference in value["references"]:
+                print(f"- {reference}")
         if value.get("path"):
             print(f"Path: {value['path']}")
         return
@@ -115,10 +160,7 @@ def search(query: str, scope: str, language: str | None, as_json: bool) -> None:
             continue
         if language and language not in pattern.get("languages", []):
             continue
-        haystack = " ".join(
-            str(pattern.get(field, ""))
-            for field in ("slug", "name", "domain", "category", "intent")
-        ).casefold()
+        haystack = entry_search_text(pattern)
         if needle in haystack:
             matches.append(attach_language(pattern, language, language_profiles))
     emit(matches, as_json)
@@ -153,13 +195,97 @@ def languages(language: str | None, as_json: bool) -> None:
 
 
 def domains(as_json: bool) -> None:
-    patterns = load_patterns()
-    groups = sorted({group for pattern in patterns for group in pattern.get("groups", [])})
+    entries = load_catalog()
+    groups = sorted({group for entry in entries for group in entry.get("groups", [])})
     domain_data = {
         "groups": groups,
-        "domains": sorted({pattern["domain"] for pattern in patterns}),
+        "domains": sorted({entry["domain"] for entry in entries}),
     }
     emit(domain_data, as_json)
+
+
+def show_collection(kind: str, slug_or_name: str | None, as_json: bool) -> int:
+    entries = load_playbooks() if kind == "playbook" else load_smells()
+    if slug_or_name is None:
+        emit(entries, as_json)
+        return 0
+    needle = slug_or_name.casefold()
+    for entry in entries:
+        names = {entry["slug"].casefold(), entry["name"].casefold()}
+        if needle in names:
+            emit(entry, as_json)
+            return 0
+    print(f"No {kind} found for: {slug_or_name}", file=sys.stderr)
+    return 1
+
+
+def find_entry(slug_or_name: str) -> dict | None:
+    needle = slug_or_name.casefold()
+    for entry in load_catalog():
+        names = {entry["slug"].casefold(), entry["name"].casefold()}
+        if needle in names:
+            return entry
+    return None
+
+
+def compare(slugs: list[str], as_json: bool) -> int:
+    entries = []
+    missing = []
+    for slug in slugs:
+        entry = find_entry(slug)
+        if entry:
+            entries.append(entry)
+        else:
+            missing.append(slug)
+    if missing:
+        print("No catalog entry found for: " + ", ".join(missing), file=sys.stderr)
+        return 1
+    if as_json:
+        emit(entries, True)
+        return 0
+    for entry in entries:
+        print(f"{entry.get('slug')}: {entry.get('name')} [{entry.get('kind')}]")
+        if entry.get("intent"):
+            print(f"  intent: {entry['intent']}")
+        if entry.get("symptom"):
+            print(f"  symptom: {entry['symptom']}")
+        if entry.get("qualityAttributes"):
+            print("  quality: " + ", ".join(entry["qualityAttributes"]))
+        if entry.get("implementationComplexity"):
+            print(f"  complexity: {entry['implementationComplexity']}")
+        if entry.get("operationalRisk"):
+            print(f"  operational risk: {entry['operationalRisk']}")
+        if entry.get("tradeoffNotes"):
+            print("  tradeoff: " + entry["tradeoffNotes"][0])
+        if entry.get("avoidWhen"):
+            print("  avoid: " + entry["avoidWhen"][0])
+    return 0
+
+
+def recommend(query: str, scope: str, language: str | None, limit: int, as_json: bool) -> None:
+    language_profiles = load_language_profiles()
+    if language and language not in language_profiles:
+        raise SystemExit(f"Unknown language: {language}")
+    terms = [term.casefold() for term in query.replace("-", " ").split() if len(term) > 2]
+    entries = []
+    for entry in load_catalog():
+        if not matches_scope(entry, scope):
+            continue
+        if language and entry.get("kind") == "pattern" and language not in entry.get("languages", []):
+            continue
+        text = entry_search_text(entry)
+        score = 0
+        for term in terms:
+            score += text.count(term)
+        if query.casefold() in text:
+            score += 5
+        if score:
+            enriched = attach_language(entry, language, language_profiles) if entry.get("kind") == "pattern" and language else entry
+            recommendation = dict(enriched)
+            recommendation["score"] = score
+            entries.append(recommendation)
+    entries.sort(key=lambda item: (-item["score"], item.get("kind", ""), item.get("slug", "")))
+    emit(entries[:limit], as_json)
 
 
 def main() -> int:
@@ -190,6 +316,25 @@ def main() -> int:
     domains_parser = subparsers.add_parser("domains", help="Show domain groups and domains")
     domains_parser.add_argument("--json", action="store_true", dest="command_json", help="Emit JSON")
 
+    playbooks_parser = subparsers.add_parser("playbooks", help="List or show architecture playbooks")
+    playbooks_parser.add_argument("slug_or_name", nargs="?")
+    playbooks_parser.add_argument("--json", action="store_true", dest="command_json", help="Emit JSON")
+
+    smells_parser = subparsers.add_parser("smells", help="List or show architecture smells")
+    smells_parser.add_argument("slug_or_name", nargs="?")
+    smells_parser.add_argument("--json", action="store_true", dest="command_json", help="Emit JSON")
+
+    compare_parser = subparsers.add_parser("compare", help="Compare catalog entries by slug or name")
+    compare_parser.add_argument("slugs", nargs="+")
+    compare_parser.add_argument("--json", action="store_true", dest="command_json", help="Emit JSON")
+
+    recommend_parser = subparsers.add_parser("recommend", help="Recommend patterns, playbooks, and smells from a force description")
+    recommend_parser.add_argument("query")
+    recommend_parser.add_argument("--scope", default="all", help="all, a domain group, or a domain")
+    recommend_parser.add_argument("--language", help="Filter pattern candidates to a language and add language-specific guidance")
+    recommend_parser.add_argument("--limit", type=int, default=5, help="Maximum recommendations to show")
+    recommend_parser.add_argument("--json", action="store_true", dest="command_json", help="Emit JSON")
+
     args = parser.parse_args()
     as_json = args.json or getattr(args, "command_json", False)
     if args.command == "list":
@@ -205,6 +350,15 @@ def main() -> int:
         return 0
     if args.command == "domains":
         domains(as_json)
+        return 0
+    if args.command == "playbooks":
+        return show_collection("playbook", args.slug_or_name, as_json)
+    if args.command == "smells":
+        return show_collection("smell", args.slug_or_name, as_json)
+    if args.command == "compare":
+        return compare(args.slugs, as_json)
+    if args.command == "recommend":
+        recommend(args.query, args.scope, args.language, args.limit, as_json)
         return 0
     return 1
 

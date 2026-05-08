@@ -23,7 +23,7 @@ Map these before recommending:
 - idempotency key;
 - observability and support workflow.
 
-## Output Shape
+## Output Contract
 
 1. Flow summary in user terms.
 2. Recommended pattern set.
@@ -33,3 +33,4 @@ Map these before recommending:
 
 Prefer a small coherent set rather than a catalog tour.
 
+For every material flow, include delivery semantics, duplicate handling, ordering expectation, retry and terminal-failure behavior, correlation strategy, replay or support workflow, and privacy-sensitive payload concerns. If any of those are unknown, call them out as open decisions instead of silently assuming defaults.

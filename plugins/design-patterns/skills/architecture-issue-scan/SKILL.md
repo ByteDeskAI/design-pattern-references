@@ -42,7 +42,7 @@ Scan for integration issues:
 Workflow:
 
 1. Inspect the actual code or artifact before recommending changes.
-2. Use `patterns search` to confirm candidate patterns.
+2. Use `patterns recommend`, `patterns smells`, and `patterns search` to confirm candidate patterns and smells.
 3. Separate real findings from optional refactor ideas.
 4. Prefer local idioms and framework capabilities over textbook ceremony.
 

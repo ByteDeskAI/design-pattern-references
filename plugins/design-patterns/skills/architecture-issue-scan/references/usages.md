@@ -23,7 +23,7 @@ Prefer real artifacts:
 
 If only a prose description exists, state that findings are provisional and recommend evidence to inspect next.
 
-## Output Shape
+## Output Contract
 
 Lead with findings:
 
@@ -36,3 +36,4 @@ Lead with findings:
 
 Keep optional improvements separate from actual risks.
 
+Each finding should be decision-ready: include evidence, the architectural force, the catalog pattern or no-pattern fix, the tradeoff introduced by the fix, and the verification signal that proves the risk is lower. When no concrete evidence is available, label the item as a provisional concern rather than a finding.

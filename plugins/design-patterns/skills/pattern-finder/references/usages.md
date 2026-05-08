@@ -20,7 +20,7 @@ Extract these from the prompt or inspected code:
 - whether the user needs implementation now or only selection advice;
 - language, framework, runtime, and delivery constraints.
 
-## Output Shape
+## Output Contract
 
 Use a tight shortlist:
 
@@ -32,3 +32,4 @@ Use a tight shortlist:
 
 Avoid long surveys unless explicitly requested.
 
+Each shortlist item should include the force it addresses, why it may be wrong, and one observable sign in code or architecture that would confirm or reject it. Prefer three useful options over many shallow candidates.

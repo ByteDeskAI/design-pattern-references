@@ -6,6 +6,9 @@
 patterns search "strategy" --scope object-design
 patterns search "dead letter" --scope integration-design
 patterns list operations-and-observability
+patterns recommend "retries duplicate side effects and never stop"
+patterns smells unbounded-retry
+patterns playbooks message-replay-and-recovery
 patterns show adapter --language go
 patterns show idempotent-receiver
 ```
@@ -23,4 +26,3 @@ patterns show idempotent-receiver
 ## Evidence Standards
 
 Use catalog entries to support findings, but ground every finding in observed code, docs, or runtime behavior. If no evidence exists, report the item as a question or risk hypothesis.
-

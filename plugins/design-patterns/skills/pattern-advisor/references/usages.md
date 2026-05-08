@@ -23,7 +23,7 @@ Ask for or infer:
 
 If the user provides code or paths, inspect them before recommending. If the user only provides a design question, use the catalog and language profiles first.
 
-## Output Shape
+## Output Contract
 
 Prefer this structure:
 
@@ -34,6 +34,8 @@ Prefer this structure:
 5. Tests or design checks that would prove the pattern is useful.
 6. A "do not use yet" note if the pattern would add ceremony without removing risk.
 
+When the answer influences architecture, add a compact decision block: assumptions, decision drivers, tradeoffs, consequences, and verification. Keep the pattern name secondary to the force it resolves.
+
 ## Progressive Disclosure
 
 Load these sibling references as needed:
@@ -41,4 +43,3 @@ Load these sibling references as needed:
 - `examples.md` for concrete answer shapes.
 - `implementation.md` for pattern application and anti-overuse checks.
 - `catalog.md` for lookup commands and domain filters.
-

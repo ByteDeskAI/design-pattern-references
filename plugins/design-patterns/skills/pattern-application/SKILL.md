@@ -25,8 +25,10 @@ Before changing code:
 1. Confirm the actual force being addressed.
 2. Inspect the current files and tests.
 3. Look up the selected pattern with `patterns show <slug>`.
-4. Check `patterns languages <language>` or `data/languages/<language>.md` for stack idioms.
-5. Identify the smallest boundary where the pattern can live.
+4. Check `patterns playbooks <slug>` when the change is a pattern combination.
+5. Check `patterns smells <slug>` when the change is motivated by an architectural smell.
+6. Check `patterns languages <language>` or `data/languages/<language>.md` for stack idioms.
+7. Identify the smallest boundary where the pattern can live.
 
 Implementation rules:
 

@@ -30,9 +30,10 @@ Start by identifying the forces in the user's request:
 
 Lookup workflow:
 
-1. Run `patterns search "$ARGUMENTS"` when the user names a pattern, force, or term.
+1. Run `patterns recommend "$ARGUMENTS"` when the user describes a force, smell, or decision context.
 2. Run `patterns list object-design --language <language>` for object design problems or `patterns list integration-design --language <language>` for messaging and integration problems when the language is known.
-3. Read the relevant Markdown entries under `data/patterns` before making a recommendation.
+3. Run `patterns smells` or `patterns playbooks` when the problem sounds like issue detection or a pattern combination.
+4. Read the relevant Markdown entries under `data/patterns`, `data/playbooks`, or `data/smells` before making a recommendation.
 
 Response shape:
 

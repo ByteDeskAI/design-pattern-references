@@ -9,6 +9,39 @@ from typing import Any
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 DATA_ROOT = PLUGIN_ROOT / "data"
+PATTERN_SECTIONS = {
+    "intent": "Intent",
+    "whenToUse": "When To Use",
+    "avoidWhen": "Avoid When",
+    "forces": "Forces",
+    "tradeoffNotes": "Tradeoffs",
+    "failureModeNotes": "Failure Modes",
+    "testing": "Testing",
+    "observability": "Observability",
+    "implementationNotes": "Implementation Notes",
+}
+PLAYBOOK_SECTIONS = {
+    "intent": "Intent",
+    "whenToUse": "When To Use",
+    "avoidWhen": "Avoid When",
+    "patternSet": "Pattern Set",
+    "implementationSteps": "Implementation Steps",
+    "verification": "Verification",
+}
+SMELL_SECTIONS = {
+    "symptom": "Symptom",
+    "whyItMatters": "Why It Matters",
+    "patternResponses": "Pattern Responses",
+    "falsePositives": "False Positives",
+    "checks": "Checks",
+}
+LANGUAGE_SECTIONS = {
+    "objectDesignIdioms": "Object Design Idioms",
+    "integrationStacks": "Integration Stacks",
+    "implementationNotes": "Implementation Notes",
+    "testingGuidance": "Testing Guidance",
+    "operationalGuidance": "Operational Guidance",
+}
 
 
 def _parse_frontmatter(text: str, path: Path) -> tuple[dict[str, Any], str]:
@@ -54,7 +87,15 @@ def _section(body: str, heading: str) -> str:
 
 
 def _bullets(section: str) -> list[str]:
-    return [line[2:].strip() for line in section.splitlines() if line.startswith("- ")]
+    bullets: list[str] = []
+    for line in section.splitlines():
+        if line.startswith("- "):
+            bullets.append(line[2:].strip())
+            continue
+        numbered = re.match(r"^\d+\.\s+(.*)$", line)
+        if numbered:
+            bullets.append(numbered.group(1).strip())
+    return bullets
 
 
 def _language_notes(section: str) -> dict[str, str]:
@@ -67,8 +108,29 @@ def _language_notes(section: str) -> dict[str, str]:
     return notes
 
 
+def _relationship_types(relationships: list[str]) -> dict[str, list[str]]:
+    typed: dict[str, list[str]] = {}
+    for relationship in relationships:
+        if ":" not in relationship:
+            typed.setdefault("related", []).append(relationship)
+            continue
+        kind, slug = relationship.split(":", 1)
+        typed.setdefault(kind.strip(), []).append(slug.strip())
+    return typed
+
+
 def _load_markdown(path: Path) -> tuple[dict[str, Any], str]:
     return _parse_frontmatter(path.read_text(encoding="utf-8"), path)
+
+
+def _apply_sections(entry: dict[str, Any], body: str, sections: dict[str, str]) -> dict[str, Any]:
+    for field, heading in sections.items():
+        section = _section(body, heading)
+        if heading in {"Intent", "Symptom", "Why It Matters", "False Positives"}:
+            entry[field] = section
+        else:
+            entry[field] = _bullets(section)
+    return entry
 
 
 def load_patterns(data_root: Path = DATA_ROOT) -> list[dict[str, Any]]:
@@ -76,13 +138,41 @@ def load_patterns(data_root: Path = DATA_ROOT) -> list[dict[str, Any]]:
     for path in sorted((data_root / "patterns").glob("*.md")):
         meta, body = _load_markdown(path)
         pattern = dict(meta)
-        pattern["intent"] = _section(body, "Intent")
-        pattern["whenToUse"] = _bullets(_section(body, "When To Use"))
-        pattern["avoidWhen"] = _bullets(_section(body, "Avoid When"))
+        pattern["kind"] = "pattern"
+        _apply_sections(pattern, body, PATTERN_SECTIONS)
         pattern["languageNotes"] = _language_notes(_section(body, "Language Notes"))
+        pattern["relationshipTypes"] = _relationship_types(pattern.get("relationships", []))
         pattern["path"] = str(path.relative_to(data_root.parent))
         patterns.append(pattern)
     return patterns
+
+
+def load_playbooks(data_root: Path = DATA_ROOT) -> list[dict[str, Any]]:
+    playbooks: list[dict[str, Any]] = []
+    for path in sorted((data_root / "playbooks").glob("*.md")):
+        meta, body = _load_markdown(path)
+        playbook = dict(meta)
+        playbook["kind"] = "playbook"
+        _apply_sections(playbook, body, PLAYBOOK_SECTIONS)
+        playbook["path"] = str(path.relative_to(data_root.parent))
+        playbooks.append(playbook)
+    return playbooks
+
+
+def load_smells(data_root: Path = DATA_ROOT) -> list[dict[str, Any]]:
+    smells: list[dict[str, Any]] = []
+    for path in sorted((data_root / "smells").glob("*.md")):
+        meta, body = _load_markdown(path)
+        smell = dict(meta)
+        smell["kind"] = "smell"
+        _apply_sections(smell, body, SMELL_SECTIONS)
+        smell["path"] = str(path.relative_to(data_root.parent))
+        smells.append(smell)
+    return smells
+
+
+def load_catalog(data_root: Path = DATA_ROOT) -> list[dict[str, Any]]:
+    return [*load_patterns(data_root), *load_playbooks(data_root), *load_smells(data_root)]
 
 
 def load_language_profiles(data_root: Path = DATA_ROOT) -> dict[str, dict[str, Any]]:
@@ -90,12 +180,10 @@ def load_language_profiles(data_root: Path = DATA_ROOT) -> dict[str, dict[str, A
     for path in sorted((data_root / "languages").glob("*.md")):
         meta, body = _load_markdown(path)
         slug = meta["slug"]
-        languages[slug] = {
-            **meta,
-            "objectDesignIdioms": _bullets(_section(body, "Object Design Idioms")),
-            "integrationStacks": _bullets(_section(body, "Integration Stacks")),
-            "path": str(path.relative_to(data_root.parent)),
-        }
+        language = {**meta}
+        _apply_sections(language, body, LANGUAGE_SECTIONS)
+        language["path"] = str(path.relative_to(data_root.parent))
+        languages[slug] = language
     return languages
 
 
@@ -107,6 +195,30 @@ def scope_names(patterns: list[dict[str, Any]]) -> set[str]:
 
 def matches_scope(pattern: dict[str, Any], scope: str) -> bool:
     return scope == "all" or scope == pattern.get("domain") or scope in pattern.get("groups", [])
+
+
+def entry_search_text(entry: dict[str, Any]) -> str:
+    parts: list[str] = []
+
+    def collect(value: Any) -> None:
+        if value is None:
+            return
+        if isinstance(value, str):
+            parts.append(value)
+            return
+        if isinstance(value, list):
+            for item in value:
+                collect(item)
+            return
+        if isinstance(value, dict):
+            for item in value.values():
+                collect(item)
+
+    for key, value in entry.items():
+        if key in {"languageProfile"}:
+            continue
+        collect(value)
+    return " ".join(parts).casefold()
 
 
 def attach_language(
@@ -127,4 +239,3 @@ def attach_language(
     if note:
         enriched["languageNote"] = note
     return enriched
-

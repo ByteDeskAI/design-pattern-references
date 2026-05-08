@@ -8,6 +8,9 @@ patterns list message-routing
 patterns list message-transformation
 patterns list message-endpoint
 patterns list operations-and-observability
+patterns recommend "producer should not know every downstream recipient"
+patterns playbooks event-fanout
+patterns smells event-soup
 patterns show content-based-router
 patterns show idempotent-receiver
 ```
@@ -27,4 +30,3 @@ patterns show idempotent-receiver
 - `splitter` often needs `aggregator` or `message-sequence`.
 - `guaranteed-delivery` needs `idempotent-receiver`.
 - `dead-letter-channel` needs ownership, alerting, and replay policy.
-

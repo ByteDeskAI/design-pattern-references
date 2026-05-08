@@ -7,6 +7,10 @@ patterns domains
 patterns list object-design --language typescript
 patterns list integration-design --language csharp
 patterns search "router" --scope integration-design
+patterns recommend "duplicate delivery repeats side effects" --scope integration-design
+patterns compare strategy state template-method
+patterns playbooks event-fanout
+patterns smells naive-exactly-once
 patterns show strategy --language csharp
 patterns languages go
 ```
@@ -24,8 +28,9 @@ Pattern files provide:
 - frontmatter for filtering;
 - intent for quick fit;
 - when-to-use and avoid-when bullets for tradeoffs;
+- typed relationships for alternatives, companions, and commonly confused entries;
+- decision metadata for quality attributes, testing, observability, and failure modes;
 - language notes for object-design patterns;
 - reference links to skill documentation.
 
 Prefer direct pattern files over memory when a user asks for a precise catalog-backed recommendation.
-

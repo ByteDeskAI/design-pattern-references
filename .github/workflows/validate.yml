@@ -1,4 +1,4 @@
-name: validate
+name: Validate Design Patterns
 
 on:
   pull_request:
@@ -7,11 +7,20 @@ on:
       - main
 
 jobs:
-  catalog:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - run: python3 scripts/validate_catalog.py
+      - name: Validate catalog and marketplace metadata
+        run: python3 scripts/validate_catalog.py
+      - name: Run unit tests
+        run: python3 -m unittest discover
+      - name: Smoke test CLI
+        run: |
+          plugins/design-patterns/bin/patterns recommend "duplicate delivery repeated side effects" --json
+          plugins/design-patterns/bin/patterns compare strategy state --json
+          plugins/design-patterns/bin/patterns playbooks event-fanout --json
+          plugins/design-patterns/bin/patterns smells naive-exactly-once --json

@@ -23,6 +23,8 @@ Use this skill to help users select, compare, implement, or review established s
 Prefer the bundled Markdown catalogs over memory:
 
 - `data/patterns/*.md` contains source-neutral pattern entries.
+- `data/playbooks/*.md` contains source-neutral pattern combinations for recurring architecture situations.
+- `data/smells/*.md` contains source-neutral architecture smells and pattern responses.
 - `data/languages/*.md` summarizes language and ecosystem idioms.
 - The executable `patterns` is available on `PATH` after installation and can list, search, or show catalog entries.
 
@@ -45,6 +47,10 @@ patterns list object-design --language typescript
 patterns list integration-design --language csharp
 patterns search "router"
 patterns search "router" --scope integration-design --language typescript
+patterns recommend "duplicate messages cause repeated side effects" --scope integration-design
+patterns compare strategy state template-method
+patterns playbooks event-fanout
+patterns smells naive-exactly-once
 patterns show strategy
 patterns show content-based-router
 patterns languages

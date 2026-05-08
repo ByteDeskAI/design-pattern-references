@@ -41,8 +41,10 @@ Review forces:
 Lookup workflow:
 
 1. Use `patterns list integration-design` to survey integration-oriented patterns.
-2. Use `patterns show <slug>` for candidate pattern entries.
-3. Use `patterns languages <language>` for ecosystem-specific implementation options.
+2. Use `patterns playbooks` for common integration pattern sets.
+3. Use `patterns smells` to check whether the flow has known risks.
+4. Use `patterns show <slug>` for candidate pattern entries.
+5. Use `patterns languages <language>` for ecosystem-specific implementation options.
 
 Output should include:
 

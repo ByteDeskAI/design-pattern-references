@@ -1,0 +1,23 @@
+{
+  "skill_name": "design-patterns",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We publish OrderCreated to billing, fulfillment, and analytics. Consumers can be down and messages may redeliver. Recommend an architecture decision with patterns, tradeoffs, and verification.",
+      "expected_output": "Uses an ADR-style decision, recommends event fanout with publish-subscribe, durable subscribers, idempotent receivers, correlation, dead-letter handling, and concrete duplicate/replay tests.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our pricing service has repeated conditionals for customer type and market. Find the likely pattern and tell me when not to use it.",
+      "expected_output": "Shortlists Strategy, compares State or simpler function/table alternatives, explains forces, tradeoffs, implementation boundary, and behavior-focused tests.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Review this integration design: a worker retries failed messages forever and assumes exactly-once processing. Give findings and fixes.",
+      "expected_output": "Identifies unbounded retry and naive exactly-once smells, recommends idempotent receiver and dead-letter/expiration policy, and includes operational checks.",
+      "files": []
+    }
+  ]
+}
