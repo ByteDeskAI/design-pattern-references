@@ -1,0 +1,297 @@
+{
+  "event_type": "tool.pre_execute",
+  "correlation_id": "aece2159-4aed-4689-aa98-467b1463fd6a",
+  "tool": "unknown",
+  "metadata": {
+    "file_path": "",
+    "command": ""
+  },
+  "stage": "pre_execution",
+  "timestamp": "2026-05-12T15:41:28.3NZ",
+  "event_id": "e935d8d4-eccc-426d-8abf-9bd0fae0adc1",
+  "hostname": "unknown",
+  "pid": "unknown"
+}
+{
+  "event_type": "tool.executed",
+  "correlation_id": "aece2159-4aed-4689-aa98-467b1463fd6a",
+  "tool": "unknown",
+  "outcome": "success",
+  "metadata": {
+    "file_path": "",
+    "command": "",
+    "output": "",
+    "duration_ms": 323,
+    "bytes_written": 0,
+    "exit_code": 0
+  },
+  "stage": "post_execution",
+  "timestamp": "2026-05-12T15:41:28.3NZ",
+  "event_id": "1cac6cdb-2952-481a-b692-98977f5deee6",
+  "hostname": "unknown",
+  "pid": "unknown"
+}
+{
+  "event_type": "tool.pre_execute",
+  "correlation_id": "aece2159-4aed-4689-aa98-467b1463fd6a",
+  "tool": "unknown",
+  "metadata": {
+    "file_path": "",
+    "command": ""
+  },
+  "stage": "pre_execution",
+  "timestamp": "2026-05-12T15:41:33.3NZ",
+  "event_id": "04db1133-0f49-4006-a705-70b46c92258b",
+  "hostname": "unknown",
+  "pid": "unknown"
+}
+{
+  "event_type": "tool.executed",
+  "correlation_id": "aece2159-4aed-4689-aa98-467b1463fd6a",
+  "tool": "unknown",
+  "outcome": "success",
+  "metadata": {
+    "file_path": "",
+    "command": "",
+    "output": "",
+    "duration_ms": 76,
+    "bytes_written": 0,
+    "exit_code": 0
+  },
+  "stage": "post_execution",
+  "timestamp": "2026-05-12T15:41:33.3NZ",
+  "event_id": "2fc5e17d-78a7-4b5c-aa7f-9b6aa7853efe",
+  "hostname": "unknown",
+  "pid": "unknown"
+}
+{
+  "event_type": "tool.pre_execute",
+  "correlation_id": "aece2159-4aed-4689-aa98-467b1463fd6a",
+  "tool": "unknown",
+  "metadata": {
+    "file_path": "",
+    "command": ""
+  },
+  "stage": "pre_execution",
+  "timestamp": "2026-05-12T15:41:37.3NZ",
+  "event_id": "b80f23a5-d1f7-411a-aced-d6ba483e55ab",
+  "hostname": "unknown",
+  "pid": "unknown"
+}
+{
+  "event_type": "tool.executed",
+  "correlation_id": "aece2159-4aed-4689-aa98-467b1463fd6a",
+  "tool": "unknown",
+  "outcome": "success",
+  "metadata": {
+    "file_path": "",
+    "command": "",
+    "output": "",
+    "duration_ms": 29,
+    "bytes_written": 0,
+    "exit_code": 0
+  },
+  "stage": "post_execution",
+  "timestamp": "2026-05-12T15:41:37.3NZ",
+  "event_id": "265ad02b-bc46-4c7b-8c78-571bc29bc57b",
+  "hostname": "unknown",
+  "pid": "unknown"
+}
+{
+  "event_type": "tool.pre_execute",
+  "correlation_id": "aece2159-4aed-4689-aa98-467b1463fd6a",
+  "tool": "unknown",
+  "metadata": {
+    "file_path": "",
+    "command": ""
+  },
+  "stage": "pre_execution",
+  "timestamp": "2026-05-12T15:41:41.3NZ",
+  "event_id": "e3e3f6b7-d35b-42b0-9f99-8263f50e3cf7",
+  "hostname": "unknown",
+  "pid": "unknown"
+}
+{
+  "event_type": "tool.executed",
+  "correlation_id": "aece2159-4aed-4689-aa98-467b1463fd6a",
+  "tool": "unknown",
+  "outcome": "success",
+  "metadata": {
+    "file_path": "",
+    "command": "",
+    "output": "",
+    "duration_ms": 54,
+    "bytes_written": 0,
+    "exit_code": 0
+  },
+  "stage": "post_execution",
+  "timestamp": "2026-05-12T15:41:41.3NZ",
+  "event_id": "ac730665-7619-4536-b33c-824e485b3124",
+  "hostname": "unknown",
+  "pid": "unknown"
+}
+{
+  "event_type": "tool.pre_execute",
+  "correlation_id": "aece2159-4aed-4689-aa98-467b1463fd6a",
+  "tool": "unknown",
+  "metadata": {
+    "file_path": "",
+    "command": ""
+  },
+  "stage": "pre_execution",
+  "timestamp": "2026-05-12T15:41:45.3NZ",
+  "event_id": "a95b8861-daf7-4438-9bdd-0fbc087a5bb4",
+  "hostname": "unknown",
+  "pid": "unknown"
+}
+{
+  "event_type": "tool.executed",
+  "correlation_id": "aece2159-4aed-4689-aa98-467b1463fd6a",
+  "tool": "unknown",
+  "outcome": "success",
+  "metadata": {
+    "file_path": "",
+    "command": "",
+    "output": "",
+    "duration_ms": 91,
+    "bytes_written": 0,
+    "exit_code": 0
+  },
+  "stage": "post_execution",
+  "timestamp": "2026-05-12T15:41:45.3NZ",
+  "event_id": "b83b1761-168a-448d-b3fe-737f0823567c",
+  "hostname": "unknown",
+  "pid": "unknown"
+}
+{
+  "event_type": "tool.pre_execute",
+  "correlation_id": "aece2159-4aed-4689-aa98-467b1463fd6a",
+  "tool": "unknown",
+  "metadata": {
+    "file_path": "",
+    "command": ""
+  },
+  "stage": "pre_execution",
+  "timestamp": "2026-05-12T15:41:49.3NZ",
+  "event_id": "8536cf2a-14b3-49df-8fac-899a6862aa24",
+  "hostname": "unknown",
+  "pid": "unknown"
+}
+{
+  "event_type": "tool.executed",
+  "correlation_id": "aece2159-4aed-4689-aa98-467b1463fd6a",
+  "tool": "unknown",
+  "outcome": "success",
+  "metadata": {
+    "file_path": "",
+    "command": "",
+    "output": "",
+    "duration_ms": 33,
+    "bytes_written": 0,
+    "exit_code": 0
+  },
+  "stage": "post_execution",
+  "timestamp": "2026-05-12T15:41:49.3NZ",
+  "event_id": "8262bb53-67fc-40ce-a70c-182ff8a50746",
+  "hostname": "unknown",
+  "pid": "unknown"
+}
+{
+  "event_type": "tool.pre_execute",
+  "correlation_id": "aece2159-4aed-4689-aa98-467b1463fd6a",
+  "tool": "unknown",
+  "metadata": {
+    "file_path": "",
+    "command": ""
+  },
+  "stage": "pre_execution",
+  "timestamp": "2026-05-12T15:41:54.3NZ",
+  "event_id": "e18b16f0-5058-4fe6-82f2-8b0d4a0e6b91",
+  "hostname": "unknown",
+  "pid": "unknown"
+}
+{
+  "event_type": "tool.executed",
+  "correlation_id": "aece2159-4aed-4689-aa98-467b1463fd6a",
+  "tool": "unknown",
+  "outcome": "success",
+  "metadata": {
+    "file_path": "",
+    "command": "",
+    "output": "",
+    "duration_ms": 45,
+    "bytes_written": 0,
+    "exit_code": 0
+  },
+  "stage": "post_execution",
+  "timestamp": "2026-05-12T15:41:54.3NZ",
+  "event_id": "245403bf-5f5d-4803-8d7c-5a2191018fdf",
+  "hostname": "unknown",
+  "pid": "unknown"
+}
+{
+  "event_type": "tool.pre_execute",
+  "correlation_id": "aece2159-4aed-4689-aa98-467b1463fd6a",
+  "tool": "unknown",
+  "metadata": {
+    "file_path": "",
+    "command": ""
+  },
+  "stage": "pre_execution",
+  "timestamp": "2026-05-12T15:41:58.3NZ",
+  "event_id": "d3e8df35-cf81-40ed-94a3-3d346ae67f3c",
+  "hostname": "unknown",
+  "pid": "unknown"
+}
+{
+  "event_type": "tool.executed",
+  "correlation_id": "aece2159-4aed-4689-aa98-467b1463fd6a",
+  "tool": "unknown",
+  "outcome": "success",
+  "metadata": {
+    "file_path": "",
+    "command": "",
+    "output": "",
+    "duration_ms": 32,
+    "bytes_written": 0,
+    "exit_code": 0
+  },
+  "stage": "post_execution",
+  "timestamp": "2026-05-12T15:41:58.3NZ",
+  "event_id": "0cec9474-3de9-45c0-8730-d532d170bc2b",
+  "hostname": "unknown",
+  "pid": "unknown"
+}
+{
+  "event_type": "tool.pre_execute",
+  "correlation_id": "aece2159-4aed-4689-aa98-467b1463fd6a",
+  "tool": "unknown",
+  "metadata": {
+    "file_path": "",
+    "command": ""
+  },
+  "stage": "pre_execution",
+  "timestamp": "2026-05-12T15:42:02.3NZ",
+  "event_id": "acac1dd4-604c-4b44-8995-1ed756d6291a",
+  "hostname": "unknown",
+  "pid": "unknown"
+}
+{
+  "event_type": "tool.executed",
+  "correlation_id": "aece2159-4aed-4689-aa98-467b1463fd6a",
+  "tool": "unknown",
+  "outcome": "success",
+  "metadata": {
+    "file_path": "",
+    "command": "",
+    "output": "",
+    "duration_ms": 34,
+    "bytes_written": 0,
+    "exit_code": 0
+  },
+  "stage": "post_execution",
+  "timestamp": "2026-05-12T15:42:02.3NZ",
+  "event_id": "26129076-d918-4400-81d9-5accf431646e",
+  "hostname": "unknown",
+  "pid": "unknown"
+}
