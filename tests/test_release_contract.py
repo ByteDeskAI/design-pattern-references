@@ -89,9 +89,9 @@ class ReleaseContractTests(unittest.TestCase):
         setup = next(step for step in validate["steps"] if step.get("name") == "Install the immutable audited publisher")
         self.assertEqual(
             setup["uses"],
-            "ByteDeskAI/marketplace-publisher/.github/actions/setup-bdm@43fa98d57a0d7a52f6c79b8f72409d09a424a541",
+            "ByteDeskAI/marketplace-publisher/.github/actions/setup-bdm@7cf1e847d6383c32dc9b125c19e9b4d8f4212e41",
         )
-        self.assertEqual(setup["with"]["expected-sha256"], "e807b92ee362c7fe146ae0913a0caa306a9f2d6ea7798cd1c44d0bd03b785e3d")
+        self.assertEqual(setup["with"]["expected-sha256"], "789f84da539fe2cd0e9b1d09db56fe8e7c2a6061ee0d71484ee72c7094b254c1")
         upload = next(step for step in validate["steps"] if str(step.get("uses", "")).startswith("actions/upload-artifact@"))
         self.assertEqual(upload["uses"], "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02")
         self.assertEqual(upload["with"]["name"], "bdm-publication-source")
@@ -104,7 +104,7 @@ class ReleaseContractTests(unittest.TestCase):
         self.assertEqual(publish["permissions"], {"actions": "read", "contents": "read", "id-token": "write"})
         self.assertEqual(
             publish["uses"],
-            "ByteDeskAI/marketplace-publisher/.github/workflows/publish-v1.yml@5c37d14b790fcb43f5f4dd1fb141950e3b1c6b07",
+            "ByteDeskAI/marketplace-publisher/.github/workflows/publish-v1.yml@f6abdb916e21112eb3ccfc1af03b8043498c3a50",
         )
         self.assertEqual(publish["with"], {
             "package": "@bytedesk/design-patterns",
