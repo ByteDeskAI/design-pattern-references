@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import tempfile
 import unittest
@@ -68,25 +69,49 @@ class ReleaseContractTests(unittest.TestCase):
         # and invalid under codex-plugin-v1 validation.
         self.assertNotIn("cwd", server)
 
-    def test_publish_workflow_is_oidc_only_and_fails_closed_after_candidate_upload(self):
+    def test_publish_workflow_uses_immutable_validated_candidate(self):
         workflow_path = ROOT / ".github" / "workflows" / "publish.yml"
         self.assertTrue(workflow_path.is_file())
         workflow = load_json(workflow_path)
-        self.assertEqual(workflow["permissions"], {"contents": "read", "id-token": "write"})
-        publish = workflow["jobs"]["publish"]
-        self.assertEqual(publish["environment"], "marketplace-production")
-        commands = "\n".join(step.get("run", "") for step in publish["steps"])
+        self.assertEqual(workflow["on"], {"push": {"tags": ["v*"]}})
+        self.assertEqual(workflow["permissions"], {})
+        self.assertEqual(set(workflow["jobs"]), {"validate", "publish"})
+        validate = workflow["jobs"]["validate"]
+        self.assertEqual(validate["permissions"], {"contents": "read"})
+        self.assertEqual(set(validate["outputs"]), {"version", "release_root"})
+        commands = "\n".join(step.get("run", "") for step in validate["steps"])
         self.assertIn("python3 scripts/release_inventory.py", commands)
         self.assertIn("python3 scripts/build_release.py", commands)
         self.assertIn("python3 scripts/validate_catalog.py", commands)
         self.assertIn("python3 plugins/design-patterns/scripts/validate_catalog.py", commands)
         self.assertIn("python3 -m unittest tests.test_release_contract", commands)
-        self.assertIn("exit 1", commands)
-        upload = next(step for step in publish["steps"] if step.get("uses") == "actions/upload-artifact@v4")
-        self.assertEqual(upload["with"]["name"], "design-patterns-release-candidate")
-        self.assertIn("bytedesk-package.yaml", upload["with"]["path"])
-        self.assertIn("dist/design-patterns", upload["with"]["path"])
-        self.assertIn("dist/release-inventory.json", upload["with"]["path"])
+        self.assertIn('"$RUNNER_TEMP/bytedesk-publisher/bdm" validate bytedesk-package.yaml', commands)
+        setup = next(step for step in validate["steps"] if step.get("name") == "Install the immutable audited publisher")
+        self.assertEqual(
+            setup["uses"],
+            "ByteDeskAI/marketplace-publisher/.github/actions/setup-bdm@43fa98d57a0d7a52f6c79b8f72409d09a424a541",
+        )
+        self.assertEqual(setup["with"]["expected-sha256"], "e807b92ee362c7fe146ae0913a0caa306a9f2d6ea7798cd1c44d0bd03b785e3d")
+        upload = next(step for step in validate["steps"] if str(step.get("uses", "")).startswith("actions/upload-artifact@"))
+        self.assertEqual(upload["uses"], "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02")
+        self.assertEqual(upload["with"]["name"], "bdm-publication-source")
+        self.assertEqual(upload["with"]["path"], "bytedesk-package.yaml\ndist/design-patterns\n")
+        self.assertIs(upload["with"]["include-hidden-files"], True)
+        self.assertEqual(upload["with"]["retention-days"], 1)
+
+        publish = workflow["jobs"]["publish"]
+        self.assertEqual(publish["needs"], "validate")
+        self.assertEqual(publish["permissions"], {"actions": "read", "contents": "read", "id-token": "write"})
+        self.assertEqual(
+            publish["uses"],
+            "ByteDeskAI/marketplace-publisher/.github/workflows/publish-v1.yml@5c37d14b790fcb43f5f4dd1fb141950e3b1c6b07",
+        )
+        self.assertEqual(publish["with"], {
+            "package": "@bytedesk/design-patterns",
+            "version": "${{ needs.validate.outputs.version }}",
+            "source-commit": "${{ github.sha }}",
+            "release-root": "${{ needs.validate.outputs.release_root }}",
+        })
         raw = workflow_path.read_text(encoding="utf-8")
         for forbidden in [
             "secrets.",
@@ -95,8 +120,46 @@ class ReleaseContractTests(unittest.TestCase):
             "go install",
             "curl ",
             "ACTIONS_ID_TOKEN_REQUEST",
+            "workflow_dispatch",
+            '"release":',
+            "exit 1",
         ]:
             self.assertNotIn(forbidden, raw)
+
+    def test_publish_validation_output_parser_binds_tag_package_and_root(self):
+        workflow = load_json(ROOT / ".github" / "workflows" / "publish.yml")
+        release = next(step for step in workflow["jobs"]["validate"]["steps"] if step.get("id") == "release")
+        validator = release["run"].split("python3 - <<'PY'\n", 1)[1].rsplit("\nPY\n", 1)[0]
+        payload = {
+            "schemaVersion": 1,
+            "package": "@bytedesk/design-patterns",
+            "version": VERSION,
+            "manifestDigest": "sha256:" + "b" * 64,
+            "releaseRootDigest": "sha256:" + "a" * 64,
+            "validatorRevision": "providers-v1",
+            "variants": [{"id": "claude-code"}],
+        }
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            result_path = root / "validation.json"
+            output_path = root / "github-output"
+            result_path.write_text(json.dumps(payload, separators=(",", ":")) + "\n", encoding="utf-8")
+            environment = os.environ.copy()
+            environment.update(
+                RESULT_PATH=str(result_path), GITHUB_OUTPUT=str(output_path),
+                GITHUB_REF_NAME="v" + VERSION, EXPECTED_PACKAGE="@bytedesk/design-patterns",
+            )
+            result = subprocess.run(["python3", "-c", validator], env=environment, text=True, capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(
+                output_path.read_text(encoding="utf-8"),
+                f"version={VERSION}\nrelease_root=sha256:{'a' * 64}\n",
+            )
+            payload["releaseRootDigest"] = "not-a-digest"
+            result_path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
+            rejected = subprocess.run(["python3", "-c", validator], env=environment, text=True, capture_output=True)
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("release root is invalid", rejected.stderr)
 
     def test_source_tree_recipe_has_a_stable_inventory(self):
         recipe = load_json(ROOT / "packaging" / "source-tree-v1.json")

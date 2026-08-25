@@ -1,25 +1,30 @@
 {
-  "name": "Validate Design Patterns release",
+  "name": "Publish Design Patterns release",
   "on": {
-    "release": {
-      "types": ["published"]
-    },
-    "workflow_dispatch": {}
+    "push": {
+      "tags": ["v*"]
+    }
   },
-  "permissions": {
-    "contents": "read",
-    "id-token": "write"
-  },
+  "permissions": {},
   "jobs": {
-    "publish": {
+    "validate": {
       "runs-on": "ubuntu-latest",
-      "environment": "marketplace-production",
+      "permissions": {
+        "contents": "read"
+      },
+      "outputs": {
+        "version": "${{ steps.release.outputs.version }}",
+        "release_root": "${{ steps.release.outputs.release_root }}"
+      },
       "steps": [
         {
-          "uses": "actions/checkout@v4"
+          "uses": "actions/checkout@11d5960a326750d5838078e36cf38b85af677262",
+          "with": {
+            "persist-credentials": false
+          }
         },
         {
-          "uses": "actions/setup-python@v5",
+          "uses": "actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065",
           "with": {
             "python-version": "3.12"
           }
@@ -33,18 +38,47 @@
           "run": "set -euo pipefail\nmkdir -p dist\npython3 scripts/release_inventory.py > dist/release-inventory.json\npython3 scripts/release_inventory.py > \"$RUNNER_TEMP/release-inventory-second.json\"\ncmp dist/release-inventory.json \"$RUNNER_TEMP/release-inventory-second.json\"\npython3 scripts/build_release.py --output \"$RUNNER_TEMP/design-patterns-first\"\npython3 scripts/build_release.py --output \"$RUNNER_TEMP/design-patterns-second\"\ndiff -qr \"$RUNNER_TEMP/design-patterns-first\" \"$RUNNER_TEMP/design-patterns-second\"\npython3 scripts/build_release.py\n"
         },
         {
-          "uses": "actions/upload-artifact@v4",
+          "name": "Install the immutable audited publisher",
+          "uses": "ByteDeskAI/marketplace-publisher/.github/actions/setup-bdm@43fa98d57a0d7a52f6c79b8f72409d09a424a541",
           "with": {
-            "name": "design-patterns-release-candidate",
-            "path": "bytedesk-package.yaml\ndist/design-patterns\ndist/release-inventory.json\n",
-            "if-no-files-found": "error"
+            "expected-sha256": "e807b92ee362c7fe146ae0913a0caa306a9f2d6ea7798cd1c44d0bd03b785e3d"
           }
         },
         {
-          "name": "Fail closed until bdm supports trusted-publisher OIDC",
-          "run": "echo \"::error title=Marketplace publication blocked::ByteDesk marketplace publication is blocked because bdm does not yet acquire GitHub Actions OIDC credentials.\"\necho \"Do not substitute a PAT, token, raw Actions JWT, or another secret.\"\nexit 1\n"
+          "id": "release",
+          "name": "Validate the exact publication candidate",
+          "env": {
+            "EXPECTED_PACKAGE": "@bytedesk/design-patterns",
+            "RESULT_PATH": "${{ runner.temp }}/bdm-validation.json"
+          },
+          "run": "set -euo pipefail\numask 077\n\"$RUNNER_TEMP/bytedesk-publisher/bdm\" validate bytedesk-package.yaml > \"$RESULT_PATH\"\npython3 - <<'PY'\nimport json\nimport os\nimport re\nfrom pathlib import Path\n\ndef closed(pairs):\n    result = {}\n    for key, value in pairs:\n        if key in result:\n            raise ValueError('duplicate JSON member')\n        result[key] = value\n    return result\n\nraw = Path(os.environ['RESULT_PATH']).read_bytes()\nif len(raw) > (1 << 20) or not raw.endswith(b'\\n'):\n    raise SystemExit('invalid validation output framing')\ndocument = json.loads(raw, object_pairs_hook=closed)\nrequired = {'schemaVersion', 'package', 'version', 'manifestDigest', 'releaseRootDigest', 'validatorRevision', 'variants'}\nif not isinstance(document, dict) or set(document) != required or document['schemaVersion'] != 1:\n    raise SystemExit('unexpected validation output contract')\nversion = document['version']\nroot = document['releaseRootDigest']\nif document['package'] != os.environ['EXPECTED_PACKAGE'] or os.environ['GITHUB_REF_NAME'] != 'v' + version:\n    raise SystemExit('release identity does not match tag')\nif not isinstance(version, str) or re.fullmatch(r'(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?', version) is None:\n    raise SystemExit('release version is invalid')\nif not isinstance(root, str) or re.fullmatch(r'sha256:[a-f0-9]{64}', root) is None:\n    raise SystemExit('release root is invalid')\nwith open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:\n    output.write(f'version={version}\\nrelease_root={root}\\n')\nPY\n"
+        },
+        {
+          "uses": "actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02",
+          "with": {
+            "name": "bdm-publication-source",
+            "path": "bytedesk-package.yaml\ndist/design-patterns\n",
+            "include-hidden-files": true,
+            "if-no-files-found": "error",
+            "retention-days": 1
+          }
         }
       ]
+    },
+    "publish": {
+      "needs": "validate",
+      "permissions": {
+        "actions": "read",
+        "contents": "read",
+        "id-token": "write"
+      },
+      "uses": "ByteDeskAI/marketplace-publisher/.github/workflows/publish-v1.yml@5c37d14b790fcb43f5f4dd1fb141950e3b1c6b07",
+      "with": {
+        "package": "@bytedesk/design-patterns",
+        "version": "${{ needs.validate.outputs.version }}",
+        "source-commit": "${{ github.sha }}",
+        "release-root": "${{ needs.validate.outputs.release_root }}"
+      }
     }
   }
 }
