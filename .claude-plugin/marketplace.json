@@ -2,7 +2,6 @@
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "bytedesk-design-patterns",
   "description": "ByteDeskAI marketplace for reusable design-pattern skills and reference catalogs.",
-  "version": "0.8.6",
   "owner": {
     "name": "ByteDeskAI"
   },
@@ -11,7 +10,6 @@
       "name": "design-patterns",
       "source": "./plugins/design-patterns",
       "description": "Source-neutral pattern advisor for architecture, refactoring, language idioms, integration design, dynamic catalog exploration, architecture scanning, context packs, simulations, graph intelligence, MCP tooling, and implementation brief generation.",
-      "version": "0.8.6",
       "author": {
         "name": "ByteDeskAI"
       },

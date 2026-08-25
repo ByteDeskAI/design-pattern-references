@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "source-tree-v1",
+  "revision": 1,
+  "source": "plugins/design-patterns",
+  "output": "dist/design-patterns",
+  "exclude": [
+    ".in_use",
+    "**/__pycache__/**",
+    "**/*.pyc"
+  ],
+  "modePolicy": {
+    "regular": "0644",
+    "executable": "0755"
+  },
+  "variants": [
+    "claude-code",
+    "openai-codex",
+    "grok-build",
+    "kimi-code"
+  ]
+}

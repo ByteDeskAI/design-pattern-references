@@ -1,0 +1,54 @@
+{
+  "$schema": "https://marketplace.bytedesk.ai/schemas/v1alpha1/bytedesk-package.schema.json",
+  "apiVersion": "marketplace.bytedesk.ai/v1alpha1",
+  "kind": "AgentPackageRelease",
+  "metadata": {
+    "namespace": "bytedesk",
+    "name": "design-patterns",
+    "version": "0.9.3",
+    "displayName": "Design Patterns"
+  },
+  "spec": {
+    "visibility": "public",
+    "summary": "Source-neutral design-pattern guidance, architecture review, catalog tools, and durable project pattern memory.",
+    "license": "Apache-2.0",
+    "repository": "https://github.com/ByteDeskAI/design-pattern-references",
+    "homepage": "https://github.com/ByteDeskAI/design-pattern-references",
+    "keywords": [
+      "architecture",
+      "design-patterns",
+      "integration-design",
+      "refactoring"
+    ],
+    "variants": [
+      {
+        "id": "claude-code",
+        "provider": "claude-code",
+        "contract": "claude-plugin",
+        "contractVersion": "observed-2026-08-19",
+        "source": { "path": "dist/design-patterns" }
+      },
+      {
+        "id": "openai-codex",
+        "provider": "openai-codex",
+        "contract": "codex-plugin",
+        "contractVersion": "observed-2026-08-19",
+        "source": { "path": "dist/design-patterns" }
+      },
+      {
+        "id": "grok-build",
+        "provider": "grok-build",
+        "contract": "grok-plugin",
+        "contractVersion": "main-observed-2026-08-19",
+        "source": { "path": "dist/design-patterns" }
+      },
+      {
+        "id": "kimi-code",
+        "provider": "kimi-code",
+        "contract": "kimi-plugin",
+        "contractVersion": "0.38.0",
+        "source": { "path": "dist/design-patterns" }
+      }
+    ]
+  }
+}

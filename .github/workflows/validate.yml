@@ -18,6 +18,12 @@ jobs:
         run: python3 scripts/generate_site.py
       - name: Validate catalog and marketplace metadata
         run: python3 scripts/validate_catalog.py
+      - name: Validate self-contained release and deterministic inventory
+        run: |
+          python3 plugins/design-patterns/scripts/validate_catalog.py
+          python3 -m unittest tests.test_release_contract
+          test "$(python3 scripts/release_inventory.py)" = "$(python3 scripts/release_inventory.py)"
+          python3 scripts/build_release.py
       - name: Run unit tests
         run: python3 -m unittest discover
       - name: Run golden eval checks
