@@ -1,6 +1,6 @@
 # Design Pattern References
 
-Claude Code, Codex, Grok Build, and Kimi Code plugin marketplace for reusable design-pattern guidance.
+Claude Code, Codex, Grok Build, and Kimi Code plugin for reusable design-pattern guidance.
 
 This repository is intended to be hosted at `ByteDeskAI/design-pattern-references` and added to Claude Code as a marketplace:
 
@@ -15,9 +15,8 @@ It can also be added to Codex as a marketplace:
 codex plugin marketplace add ByteDeskAI/design-pattern-references
 ```
 
-Grok Build consumes the same Git marketplace through
-`.grok-plugin/plugin.json`. Kimi Code consumes the server's version-2 catalog
-projection and the bundled `kimi.plugin.json` manifest.
+Grok Build consumes `.grok-plugin/plugin.json`. Kimi Code consumes the
+server-projected version-2 catalog and this bundle's `kimi.plugin.json`.
 
 For local development from this checkout:
 
@@ -183,9 +182,8 @@ Omit `--language` and `--scope` unless you want to override inference. The plugi
 
 The repository includes three MCP configurations:
 
-- [`plugins/design-patterns/.mcp.json`](plugins/design-patterns/.mcp.json): packaged with Claude, Grok Build, and Kimi Code. Claude starts it through `${CLAUDE_PLUGIN_ROOT}/bin/patterns-mcp`; server adapters preserve provider-specific install-root handling.
-- [`plugins/design-patterns/.codex-mcp.json`](plugins/design-patterns/.codex-mcp.json): packaged with Codex and uses plugin-relative paths.
-- [`.mcp.json`](.mcp.json): project-scoped configuration for developing this repository.
+- [`.mcp.json`](.mcp.json): shared Claude, Grok Build, and Kimi Code MCP declaration. Provider adapters resolve the installed plugin root.
+- [`.codex-mcp.json`](.codex-mcp.json): Codex MCP declaration using plugin-relative paths.
 
 Claude verification:
 
@@ -311,6 +309,5 @@ python3 scripts/run_evals.py
 ## Versioning
 
 The immutable ByteDesk package, Codex, Grok Build, and Kimi Code manifests use
-`0.9.3`. The internal Claude marketplace and plugin manifests remain versionless,
-so Claude resolves their installed version from the immutable marketplace source
-commit instead of serving a stale pinned cache.
+`0.9.3`. The internal Claude manifest remains versionless and resolves its
+installed version from the immutable marketplace source commit.

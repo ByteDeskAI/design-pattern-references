@@ -1,0 +1,50 @@
+{
+  "name": "Validate Design Patterns release",
+  "on": {
+    "release": {
+      "types": ["published"]
+    },
+    "workflow_dispatch": {}
+  },
+  "permissions": {
+    "contents": "read",
+    "id-token": "write"
+  },
+  "jobs": {
+    "publish": {
+      "runs-on": "ubuntu-latest",
+      "environment": "marketplace-production",
+      "steps": [
+        {
+          "uses": "actions/checkout@v4"
+        },
+        {
+          "uses": "actions/setup-python@v5",
+          "with": {
+            "python-version": "3.12"
+          }
+        },
+        {
+          "name": "Validate source and release contract",
+          "run": "set -euo pipefail\npython3 scripts/validate_catalog.py\npython3 plugins/design-patterns/scripts/validate_catalog.py\npython3 -m unittest tests.test_release_contract\npython3 scripts/run_evals.py\n"
+        },
+        {
+          "name": "Build deterministic provider artifacts",
+          "run": "set -euo pipefail\nmkdir -p dist\npython3 scripts/release_inventory.py > dist/release-inventory.json\npython3 scripts/release_inventory.py > \"$RUNNER_TEMP/release-inventory-second.json\"\ncmp dist/release-inventory.json \"$RUNNER_TEMP/release-inventory-second.json\"\npython3 scripts/build_release.py --output \"$RUNNER_TEMP/design-patterns-first\"\npython3 scripts/build_release.py --output \"$RUNNER_TEMP/design-patterns-second\"\ndiff -qr \"$RUNNER_TEMP/design-patterns-first\" \"$RUNNER_TEMP/design-patterns-second\"\npython3 scripts/build_release.py\n"
+        },
+        {
+          "uses": "actions/upload-artifact@v4",
+          "with": {
+            "name": "design-patterns-release-candidate",
+            "path": "bytedesk-package.yaml\ndist/design-patterns\ndist/release-inventory.json\n",
+            "if-no-files-found": "error"
+          }
+        },
+        {
+          "name": "Fail closed until bdm supports trusted-publisher OIDC",
+          "run": "echo \"::error title=Marketplace publication blocked::ByteDesk marketplace publication is blocked because bdm does not yet acquire GitHub Actions OIDC credentials.\"\necho \"Do not substitute a PAT, token, raw Actions JWT, or another secret.\"\nexit 1\n"
+        }
+      ]
+    }
+  }
+}

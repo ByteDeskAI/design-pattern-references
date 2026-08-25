@@ -9,8 +9,8 @@ import sys
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[1]
-PLUGIN = ROOT / "plugins" / "design-patterns"
+PLUGIN = Path(__file__).resolve().parents[1]
+ROOT = PLUGIN
 sys.path.insert(0, str(PLUGIN / "lib"))
 
 from pattern_catalog import (
@@ -156,30 +156,17 @@ def parse_frontmatter(text: str, label: str) -> dict[str, str]:
 
 
 def validate_claude_manifest() -> None:
-    marketplace = load_json(ROOT / ".claude-plugin" / "marketplace.json")
     plugin = load_json(PLUGIN / ".claude-plugin" / "plugin.json")
-    require(KEBAB.match(marketplace["name"]) is not None, "Claude marketplace name must be kebab-case")
     require(KEBAB.match(plugin["name"]) is not None, "Claude plugin name must be kebab-case")
-    require(marketplace["plugins"][0]["source"] == "./plugins/design-patterns", "Claude marketplace source must stay relative to marketplace root")
-    require(marketplace["plugins"][0]["name"] == plugin["name"], "Claude marketplace plugin name must match plugin manifest")
-    require("version" not in marketplace, "Internal Claude marketplace must resolve its version from the source commit")
-    require("version" not in marketplace["plugins"][0], "Internal Claude marketplace entry must be versionless")
     require("version" not in plugin, "Internal Claude plugin must be versionless")
 
 
 def validate_codex_manifest() -> None:
-    marketplace = load_json(ROOT / ".agents" / "plugins" / "marketplace.json")
+    # The standalone Codex marketplace manifest (.agents/plugins/marketplace.json) does not
+    # travel with a provider installation; validate the bundled Codex plugin
+    # manifest for internal consistency here.
     plugin = load_json(PLUGIN / ".codex-plugin" / "plugin.json")
-    require(KEBAB.match(marketplace["name"]) is not None, "Codex marketplace name must be kebab-case")
     require(KEBAB.match(plugin["name"]) is not None, "Codex plugin name must be kebab-case")
-    require(marketplace["plugins"], "Codex marketplace must list at least one plugin")
-    entry = marketplace["plugins"][0]
-    require(entry["name"] == plugin["name"], "Codex marketplace plugin name must match plugin manifest")
-    require(entry["source"]["source"] == "local", "Codex marketplace source must be local")
-    require(entry["source"]["path"] == "./plugins/design-patterns", "Codex marketplace source path must stay relative to marketplace root")
-    require(entry["policy"]["installation"] in {"NOT_AVAILABLE", "AVAILABLE", "INSTALLED_BY_DEFAULT"}, "Codex installation policy is invalid")
-    require(entry["policy"]["authentication"] in {"ON_INSTALL", "ON_USE"}, "Codex authentication policy is invalid")
-    require(entry.get("category"), "Codex marketplace entry must include category")
     require(plugin["skills"] == "./skills/", "Codex plugin must expose the shared skills directory")
     require(plugin["mcpServers"] == "./.codex-mcp.json", "Codex plugin must expose the Codex MCP server config")
     require(plugin["version"] == "0.9.3", "Codex plugin must match the immutable package release")
@@ -198,33 +185,27 @@ def validate_additional_provider_manifests() -> None:
 
 
 def validate_mcp_metadata() -> None:
+    # The repo-root project .mcp.json from the standalone repo does not travel with the
+    # plugin; validate the bundled Claude + Codex MCP server configs only. See BDM-53.
     claude_plugin_config = load_json(PLUGIN / ".mcp.json")
     codex_plugin_config = load_json(PLUGIN / ".codex-mcp.json")
-    project_config = load_json(ROOT / ".mcp.json")
     claude_plugin_servers = claude_plugin_config.get("mcpServers", {})
     codex_plugin_servers = codex_plugin_config.get("mcpServers", {})
-    project_servers = project_config.get("mcpServers", {})
     require((PLUGIN / "bin" / "patterns-mcp").exists(), "Missing install-root-aware MCP launcher")
     require("design-patterns" in claude_plugin_servers, "Claude plugin .mcp.json must expose design-patterns server")
     require("design-patterns" in codex_plugin_servers, "Codex plugin .codex-mcp.json must expose design-patterns server")
-    require("design-patterns" in project_servers, "Project .mcp.json must expose design-patterns server")
     claude_plugin_server = claude_plugin_servers["design-patterns"]
     codex_plugin_server = codex_plugin_servers["design-patterns"]
-    project_server = project_servers["design-patterns"]
     require(claude_plugin_server.get("type") == "stdio", "Claude plugin MCP server must be stdio")
     require(codex_plugin_server.get("type") == "stdio", "Codex plugin MCP server must be stdio")
-    require(project_server.get("type") == "stdio", "Project MCP server must be stdio")
     require(
         claude_plugin_server.get("command") == "${CLAUDE_PLUGIN_ROOT}/bin/patterns-mcp",
         "Claude plugin MCP server command must use the installed plugin root",
     )
     require(codex_plugin_server.get("command") == "./bin/patterns-mcp", "Codex plugin MCP server command must use the bundled launcher")
-    require(project_server.get("command") == "./plugins/design-patterns/bin/patterns-mcp", "Project MCP server command must use the repo-local launcher")
     require(not claude_plugin_server.get("args"), "Claude plugin MCP server should not need args")
     require(not codex_plugin_server.get("args"), "Codex plugin MCP server should not need args")
-    require(not project_server.get("args"), "Project MCP server should not need args")
     require("cwd" not in codex_plugin_server, "Codex plugin MCP server must use the implicit artifact root")
-    require(project_server.get("cwd") == ".", "Project MCP server cwd must be the repo root")
 
 
 def validate_markdown_only_data() -> None:
