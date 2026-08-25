@@ -28,6 +28,22 @@ claude plugin install design-patterns@bytedesk-design-patterns
 codex plugin marketplace add .
 ```
 
+## Marketplace Publication
+
+Pushing an immutable `v<version>` tag runs the repository validation and
+deterministic staging checks, validates `bytedesk-package.yaml` with the audited
+`bdm` client, and uploads the fixed `bdm-publication-source` candidate. The
+workflow then calls the centrally governed ByteDesk publisher by full commit
+SHA. That publisher independently compares the candidate manifest with the
+tagged source, recomputes the release root, and exchanges GitHub OIDC for a
+short-lived publisher identity. No PAT, repository secret, direct CLI publish,
+or mutable workflow reference is used.
+
+The tag must equal `v` plus `metadata.version`; mismatched identities or release
+roots fail before publication. The marketplace trusted-publisher binding must
+authorize this repository, `.github/workflows/publish.yml`, and the exact
+central reusable-workflow SHA.
+
 ## What Is Included
 
 - A Claude Code marketplace manifest at `.claude-plugin/marketplace.json`.
